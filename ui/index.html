@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stealth Radar</title>
+  <!-- radar dish favicon: inline SVG data URI -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0a0f'/%3E%3Ccircle cx='16' cy='18' r='10' fill='none' stroke='%236366f1' stroke-width='1.5' stroke-dasharray='31.4 62.8' stroke-dashoffset='0'/%3E%3Ccircle cx='16' cy='18' r='6' fill='none' stroke='%236366f1' stroke-width='1.5' stroke-dasharray='18.8 37.7' stroke-dashoffset='0'/%3E%3Ccircle cx='16' cy='18' r='2' fill='%236366f1'/%3E%3Cline x1='16' y1='4' x2='23' y2='11' stroke='%236366f1' stroke-width='1.5' stroke-linecap='round'/%3E%3Ccircle cx='23' cy='11' r='1.5' fill='%2310b981'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0a0a0f;
+      --surface:     #111118;
+      --surface2:    #16161f;
+      --border:      #1e1e2e;
+      --border2:     #2a2a3e;
+      --accent:      #6366f1;
+      --accent-h:    #818cf8;
+      --accent-dim:  rgba(99,102,241,0.15);
+      --text:        #e2e8f0;
+      --text2:       #94a3b8;
+      --text3:       #64748b;
+      --green:       #10b981;
+      --green-dim:   rgba(16,185,129,0.12);
+      --amber:       #f59e0b;
+      --amber-dim:   rgba(245,158,11,0.12);
+      --red:         #ef4444;
+      --red-dim:     rgba(239,68,68,0.12);
+      --mono:        'JetBrains Mono', monospace;
+      --sans:        'Inter', sans-serif;
+    }
+
+    html, body, #root { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+    /* ── Header ── */
+    .header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px;
+    }
+    .header-logo {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: var(--text);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .pulse-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse-ring 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse-ring {
+      0%   { box-shadow: 0 0 0 0 rgba(16,185,129,0.6); }
+      60%  { box-shadow: 0 0 0 5px rgba(16,185,129,0); }
+      100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+    }
+    .header-nav { display: flex; gap: 0; }
+    .nav-tab {
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text3);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 16px 18px 14px;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .nav-tab:hover { color: var(--text2); }
+    .nav-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+    /* ── Main layout ── */
+    .main { padding-top: 64px; min-height: 100%; }
+    .tab-content { padding: 32px 24px; max-width: 960px; margin: 0 auto; }
+
+    /* ── Input row ── */
+    .input-row {
+      display: flex; gap: 10px; margin-bottom: 28px;
+    }
+    .anchor-input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-family: var(--sans);
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .anchor-input::placeholder { color: var(--text3); }
+    .anchor-input:focus { border-color: var(--accent); }
+    .run-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .run-btn:hover:not(:disabled) { background: var(--accent-h); }
+    .run-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── Live Trace ── */
+    .trace-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+    .trace-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .trace-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      color: var(--text3);
+    }
+    .trace-stages {
+      display: flex; gap: 12px; align-items: center;
+    }
+    .stage-dot {
+      display: flex; align-items: center; gap: 5px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+      letter-spacing: 0.05em;
+    }
+    .stage-dot .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--border2);
+      transition: background 0.2s;
+    }
+    .stage-dot.active .dot  { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    .stage-dot.done .dot    { background: var(--green); }
+    .stage-dot.active       { color: var(--accent); }
+    .stage-dot.done         { color: var(--green); }
+    .trace-collapse-btn {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 8px;
+      cursor: pointer;
+    }
+    .trace-collapse-btn:hover { color: var(--text); border-color: var(--border2); }
+    .trace-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0 16px;
+    }
+    .trace-log {
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.7;
+      padding: 10px 16px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .log-line { display: flex; gap: 10px; align-items: baseline; }
+    .log-ts   { color: var(--text3); min-width: 36px; }
+    .log-endpoint { color: var(--accent); }
+    .log-filter   { color: var(--text2); }
+    .log-num      { color: var(--accent-h); font-weight: 600; }
+    .log-meta     { color: var(--text3); }
+    .log-stage    { color: var(--text2); }
+    .trace-footer {
+      display: flex; gap: 24px;
+      padding: 8px 16px;
+      border-top: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+    .trace-stat { color: var(--text3); }
+    .trace-stat span { color: var(--accent-h); font-weight: 600; }
+
+    /* ── Cluster results ── */
+    .results-header {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--text3);
+      margin-bottom: 14px;
+    }
+    .cluster-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+    .cluster-card:hover { border-color: var(--border2); }
+    .cluster-card-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tier-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+    .tier-high     { background: var(--accent); color: #fff; }
+    .tier-medium   { background: transparent; border: 1.5px solid var(--accent); color: var(--accent); }
+    .tier-low      { background: transparent; border: 1.5px solid var(--border2); color: var(--text3); }
+    .tier-watch    { background: transparent; color: var(--text3); }
+    .cluster-score {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .cluster-meta {
+      font-size: 12px;
+      color: var(--text3);
+      margin-left: auto;
+    }
+    .cluster-section {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .cluster-section:last-child { border-bottom: none; }
+    .section-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: var(--text3);
+      margin-bottom: 10px;
+    }
+
+    /* Member table */
+    .member-table { width: 100%; border-collapse: collapse; }
+    .member-table th {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      text-align: left;
+      padding: 4px 8px 6px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .member-table td {
+      font-size: 13px;
+      color: var(--text2);
+      padding: 7px 8px 7px 0;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .member-table tr:last-child td { border-bottom: none; }
+    .member-name { color: var(--text); font-weight: 500; white-space: nowrap; }
+    .member-headline { color: var(--text3); font-size: 12px; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .member-title { color: var(--text2); font-size: 12px; white-space: nowrap; }
+
+    /* Adjudication */
+    .adj-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .adj-label {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+    .adj-forming     { background: var(--green-dim);  color: var(--green); }
+    .adj-layoff      { background: var(--amber-dim);  color: var(--amber); }
+    .adj-coincidental { background: rgba(100,116,139,0.12); color: var(--text3); }
+    .adj-unclear     { background: rgba(100,116,139,0.08); color: var(--text3); }
+
+    .confidence-bar-wrap {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px;
+    }
+    .confidence-bar-track {
+      width: 80px; height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .confidence-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.6s ease;
+    }
+    .conf-forming     { background: var(--green); }
+    .conf-layoff      { background: var(--amber); }
+    .conf-coincidental { background: var(--text3); }
+    .conf-unclear     { background: var(--text3); }
+    .confidence-val { color: var(--text2); }
+    .adj-rationale {
+      font-size: 13px;
+      color: var(--text2);
+      margin-top: 10px;
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    /* Dossier */
+    .dossier-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .dossier-item {}
+    .dossier-item-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--text3);
+      margin-bottom: 4px;
+    }
+    .dossier-item-value {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+    .urgency-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 3px 9px;
+      border-radius: 3px;
+    }
+    .urgency-now     { background: var(--red-dim); color: var(--red); }
+    .urgency-soon    { background: var(--amber-dim); color: var(--amber); }
+    .urgency-monitor { background: rgba(100,116,139,0.12); color: var(--text3); }
+
+    /* Empty / error states */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px; padding: 60px 24px;
+      color: var(--text3);
+      font-size: 13px;
+      text-align: center;
+    }
+    .empty-state .icon {
+      font-size: 28px;
+      opacity: 0.4;
+    }
+    .error-panel {
+      background: var(--red-dim);
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 8px;
+      padding: 14px 18px;
+      color: var(--red);
+      font-family: var(--mono);
+      font-size: 12px;
+      margin-bottom: 18px;
+    }
+
+    /* ── TalentFlow ── */
+    .sankey-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px;
+      margin-bottom: 20px;
+      min-height: 320px;
+    }
+    .flow-table { width: 100%; border-collapse: collapse; }
+    .flow-table th {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--text3);
+      text-align: left;
+      padding: 6px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .flow-table td {
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--text2);
+      border-bottom: 1px solid var(--border);
+    }
+    .flow-table tr:last-child td { border-bottom: none; }
+    .stealth-flag {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      color: var(--amber);
+      border: 1px solid rgba(245,158,11,0.35);
+      border-radius: 3px;
+      padding: 1px 5px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* ── Backtest ── */
+    .backtest-intro {
+      margin-bottom: 28px;
+    }
+    .backtest-intro-title {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .backtest-intro-desc {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.6;
+      max-width: 680px;
+    }
+    .backtest-intro-caveat {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 6px;
+      font-style: italic;
+    }
+    .case-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+    }
+    .case-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 12px;
+    }
+    .case-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .case-dot-positive  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .case-dot-gate      { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    .case-dot-boundary  { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+    .case-type {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+    }
+    .case-type-positive  { color: var(--green); }
+    .case-type-gate      { color: var(--accent); }
+    .case-type-boundary  { color: var(--amber); }
+    .case-company {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin-left: auto;
+      letter-spacing: -0.01em;
+    }
+    .case-body {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.7;
+    }
+    .case-metrics {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin-top: 12px;
+    }
+    .case-metric {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 5px 12px;
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+    .case-metric-key { color: var(--text3); }
+    .case-metric-val { color: var(--accent-h); font-weight: 600; }
+    .case-note {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 10px;
+      font-style: italic;
+    }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--border2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .running-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    /* ── Key Sidebar ── */
+    .key-sidebar {
+      width: 260px;
+      min-height: 100%;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .sidebar-section-label {
+      color: var(--text2);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-family: var(--mono);
+    }
+    .sidebar-notice {
+      background: rgba(99,102,241,0.06);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 11px;
+      color: var(--text3);
+      line-height: 1.5;
+    }
+    .key-input-wrap { display: flex; flex-direction: column; gap: 4px; }
+    .key-input-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .key-input-label {
+      font-size: 11px;
+      color: var(--text2);
+      font-weight: 500;
+      font-family: var(--mono);
+    }
+    .key-input-status {
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .key-input-field-wrap { position: relative; }
+    .key-input-field {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 6px 28px 6px 8px;
+      color: var(--text);
+      font-size: 11px;
+      font-family: var(--mono);
+      outline: none;
+    }
+    .key-input-field:focus { border-color: var(--accent); }
+    .key-toggle-btn {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      padding: 0;
+      font-size: 11px;
+    }
+    .validate-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--sans);
+    }
+    .validate-btn:disabled { opacity: 0.4; cursor: default; }
+    .mode-indicator {
+      margin-top: auto;
+      font-size: 11px;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    /* demo badge */
+    .demo-badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      padding: 2px 8px;
+      border-radius: 3px;
+      background: var(--amber-dim);
+      color: var(--amber);
+      border: 1px solid rgba(245,158,11,0.3);
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    .live-badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      padding: 2px 8px;
+      border-radius: 3px;
+      background: var(--green-dim);
+      color: var(--green);
+      border: 1px solid rgba(16,185,129,0.3);
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+    // ── Utilities ────────────────────────────────────────────────────────────
+
+    function truncate(str, n = 80) {
+      if (!str) return "";
+      return str.length > n ? str.slice(0, n) + "…" : str;
+    }
+
+    function relTs(startMs) {
+      const s = ((Date.now() - startMs) / 1000).toFixed(1);
+      return `+${s}s`;
+    }
+
+    // ── Header ───────────────────────────────────────────────────────────────
+
+    function Header({ tab, setTab }) {
+      const tabs = ["Radar", "TalentFlow", "Validation"];
+      return (
+        <header className="header">
+          <div style={{display:"flex",flexDirection:"column",gap:2}}>
+            <div className="header-logo">
+              <div className="pulse-dot" />
+              STEALTH RADAR
+            </div>
+            <div style={{fontSize:10,color:"var(--text3)",fontFamily:"var(--sans)",fontWeight:400,letterSpacing:".01em",paddingLeft:18,lineHeight:1.3}}>
+              Detects startup teams forming inside large companies — before they announce —
+              by tracking co-movement in the talent graph.
+            </div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:20}}>
+            {/* Built-with credit */}
+            <div style={{display:"flex",alignItems:"center",gap:8,borderLeft:"1px solid var(--border)",paddingLeft:16}}>
+              <span style={{fontSize:10,color:"var(--text3)",fontFamily:"var(--sans)",letterSpacing:".04em",textTransform:"uppercase"}}>Built with</span>
+              <span style={{fontFamily:"var(--mono)",fontSize:11,fontWeight:600,color:"#f97316",letterSpacing:".02em"}}>Crustdata</span>
+              <span style={{color:"var(--border2)",fontSize:10}}>+</span>
+              <span style={{fontFamily:"var(--mono)",fontSize:11,fontWeight:600,color:"#d4a96a",letterSpacing:".02em"}}>Claude</span>
+            </div>
+            <nav className="header-nav">
+              {tabs.map(t => (
+                <button
+                  key={t}
+                  className={`nav-tab${tab === t ? " active" : ""}`}
+                  onClick={() => setTab(t)}
+                >{t}</button>
+              ))}
+            </nav>
+          </div>
+        </header>
+      );
+    }
+
+    // ── LiveTrace ────────────────────────────────────────────────────────────
+
+    const STAGE_ORDER = ["cohort_pull", "parse", "leavers", "signals", "clustering", "scoring", "adjudication"];
+    const STAGE_LABELS = {
+      cohort_pull: "cohort",
+      parse: "parse",
+      leavers: "leavers",
+      signals: "signals",
+      clustering: "cluster",
+      scoring: "score",
+      adjudication: "adjudicate",
+    };
+
+    function LiveTrace({ events, collapsed, onToggle, credits, rows }) {
+      const logRef = useRef(null);
+      const startMs = useRef(Date.now());
+
+      useEffect(() => {
+        if (logRef.current) {
+          logRef.current.scrollTop = logRef.current.scrollHeight;
+        }
+      }, [events]);
+
+      // Compute stage statuses
+      const stageStatus = {};
+      for (const e of events) {
+        if (e.type === "stage") {
+          stageStatus[e.stage] = e.status; // "start" or "done"
+        }
+      }
+
+      return (
+        <div className="trace-panel">
+          <div className="trace-header">
+            <span className="trace-title">LIVE TRACE</span>
+            <div className="trace-stages">
+              {STAGE_ORDER.slice(0, 5).map(s => {
+                const st = stageStatus[s];
+                return (
+                  <div key={s} className={`stage-dot${st === "done" ? " done" : st === "start" ? " active" : ""}`}>
+                    <div className="dot" />
+                    {STAGE_LABELS[s]}
+                  </div>
+                );
+              })}
+            </div>
+            <button className="trace-collapse-btn" onClick={onToggle}>
+              {collapsed ? "expand +" : "collapse ×"}
+            </button>
+          </div>
+
+          {!collapsed && (
+            <>
+              <div className="trace-log" ref={logRef}>
+                {events.map((e, i) => {
+                  if (e.type === "api_call") {
+                    return (
+                      <div key={i} className="log-line">
+                        <span className="log-ts">{relTs(startMs.current)}</span>
+                        <span className="log-endpoint">POST /person/search</span>
+                        <span className="log-filter">{e.filter_summary}</span>
+                        <span className="log-num">{e.rows}r</span>
+                        <span className="log-meta">{e.latency_ms}ms</span>
+                        <span className="log-num">${e.credits?.toFixed(2)}</span>
+                      </div>
+                    );
+                  }
+                  if (e.type === "stage") {
+                    return (
+                      <div key={i} className="log-line">
+                        <span className="log-ts">{relTs(startMs.current)}</span>
+                        <span className="log-stage">{e.stage} {e.status}{e.count !== undefined ? ` → ${e.count}` : ""}</span>
+                      </div>
+                    );
+                  }
+                  if (e.type === "cluster") {
+                    return (
+                      <div key={i} className="log-line">
+                        <span className="log-ts">{relTs(startMs.current)}</span>
+                        <span className="log-stage">cluster #{e.rank} scored</span>
+                        <span className="log-num">{e.tier}</span>
+                        <span className="log-meta">score={e.score?.toFixed(1)}</span>
+                      </div>
+                    );
+                  }
+                  if (e.type === "error") {
+                    return (
+                      <div key={i} className="log-line">
+                        <span className="log-ts">{relTs(startMs.current)}</span>
+                        <span style={{color: "var(--red)"}}>ERROR: {e.message}</span>
+                      </div>
+                    );
+                  }
+                  if (e.type === "done") {
+                    return (
+                      <div key={i} className="log-line">
+                        <span className="log-ts">{relTs(startMs.current)}</span>
+                        <span style={{color: "var(--green)"}}>done — {e.total_clusters} cluster(s)</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+              <div className="trace-divider" />
+              <div className="trace-footer">
+                <span className="trace-stat">CREDITS <span>${(credits || 0).toFixed(2)}</span></span>
+                <span className="trace-stat">ROWS <span>{rows || 0}</span></span>
+              </div>
+            </>
+          )}
+        </div>
+      );
+    }
+
+    // ── TierBadge ────────────────────────────────────────────────────────────
+
+    function TierBadge({ tier }) {
+      const cls = {
+        High: "tier-high",
+        Medium: "tier-medium",
+        Low: "tier-low",
+        Watch: "tier-watch",
+      }[tier] || "tier-watch";
+      return <span className={`tier-badge ${cls}`}>{tier?.toUpperCase()}</span>;
+    }
+
+    // ── AdjudicationBlock ────────────────────────────────────────────────────
+
+    function adjClass(label) {
+      if (!label) return "adj-unclear";
+      if (label.includes("forming")) return "adj-forming";
+      if (label.includes("layoff")) return "adj-layoff";
+      if (label.includes("coincidental")) return "adj-coincidental";
+      return "adj-unclear";
+    }
+
+    function adjBarClass(label) {
+      if (!label) return "conf-unclear";
+      if (label.includes("forming")) return "conf-forming";
+      if (label.includes("layoff")) return "conf-layoff";
+      if (label.includes("coincidental")) return "conf-coincidental";
+      return "conf-unclear";
+    }
+
+    function AdjudicationBlock({ adj }) {
+      if (!adj) return null;
+      const label = adj.label || adj.classification || adj.verdict || "";
+      const confidence = adj.confidence ?? adj.prob ?? null;
+      const rationale = adj.rationale || adj.reasoning || adj.explanation || "";
+
+      return (
+        <div>
+          <div className="adj-row">
+            {label && (
+              <span className={`adj-label ${adjClass(label)}`}>
+                {label.replace(/_/g, " ")}
+              </span>
+            )}
+            {confidence !== null && (
+              <div className="confidence-bar-wrap">
+                <div className="confidence-bar-track">
+                  <div
+                    className={`confidence-bar-fill ${adjBarClass(label)}`}
+                    style={{ width: `${Math.round((confidence || 0) * 100)}%` }}
+                  />
+                </div>
+                <span className="confidence-val">{((confidence || 0)).toFixed(2)}</span>
+              </div>
+            )}
+          </div>
+          {rationale && (
+            <div className="adj-rationale">"{truncate(rationale, 200)}"</div>
+          )}
+        </div>
+      );
+    }
+
+    // ── DossierBlock ─────────────────────────────────────────────────────────
+
+    function UrgencyBadge({ urgency }) {
+      if (!urgency) return null;
+      const u = urgency.toUpperCase();
+      const cls = u === "NOW" ? "urgency-now" : u === "SOON" ? "urgency-soon" : "urgency-monitor";
+      return <span className={`urgency-badge ${cls}`}>{u}</span>;
+    }
+
+    function DossierBlock({ dos }) {
+      if (!dos) return null;
+      const thesis = dos.thesis || dos.summary || dos.brief || "";
+      const action = dos.recommended_action || dos.action || dos.next_step || "";
+      const urgency = dos.urgency || dos.urgency_level || "";
+      const timeline = dos.evidence_timeline || dos.timeline || dos.events || null;
+
+      return (
+        <div className="dossier-grid">
+          {thesis && (
+            <div className="dossier-item" style={{gridColumn: "1 / -1"}}>
+              <div className="dossier-item-label">THESIS</div>
+              <div className="dossier-item-value">{truncate(thesis, 220)}</div>
+            </div>
+          )}
+          {action && (
+            <div className="dossier-item">
+              <div className="dossier-item-label">ACTION</div>
+              <div className="dossier-item-value">{action}</div>
+            </div>
+          )}
+          {urgency && (
+            <div className="dossier-item">
+              <div className="dossier-item-label">URGENCY</div>
+              <UrgencyBadge urgency={urgency} />
+            </div>
+          )}
+          {timeline && Array.isArray(timeline) && timeline.length > 0 && (
+            <div className="dossier-item" style={{gridColumn: "1 / -1"}}>
+              <div className="dossier-item-label">EVIDENCE TIMELINE</div>
+              {timeline.map((ev, i) => (
+                <div key={i} className="dossier-item-value" style={{borderLeft: "2px solid var(--border)", paddingLeft: 10, marginTop: 4, fontSize: 12}}>
+                  {typeof ev === "string" ? ev : JSON.stringify(ev)}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ── ClusterCard ──────────────────────────────────────────────────────────
+
+    function ClusterCard({ cluster, rank }) {
+      const showDossier = cluster.tier === "High" || cluster.tier === "Medium";
+      const members = cluster.members || [];
+
+      return (
+        <div className="cluster-card">
+          <div className="cluster-card-header">
+            <TierBadge tier={cluster.tier} />
+            <span className="cluster-score">{cluster.score?.toFixed(1)}</span>
+            <span className="cluster-meta">{members.length} member{members.length !== 1 ? "s" : ""} · #{rank}</span>
+          </div>
+
+          {members.length > 0 && (
+            <div className="cluster-section">
+              <div className="section-label">MEMBERS</div>
+              <table className="member-table">
+                <thead>
+                  <tr>
+                    <th>NAME</th>
+                    <th>HEADLINE</th>
+                    <th>CURRENT ROLE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {members.map((m, i) => (
+                    <tr key={i}>
+                      <td className="member-name">{m.name || "—"}</td>
+                      <td className="member-headline">{truncate(m.headline, 80)}</td>
+                      <td className="member-title">
+                        {[m.current_title, m.current_company].filter(Boolean).join(" @ ") || "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {cluster.adjudication && (
+            <div className="cluster-section">
+              <div className="section-label">ADJUDICATION</div>
+              <AdjudicationBlock adj={cluster.adjudication} />
+            </div>
+          )}
+
+          {showDossier && cluster.dossier && (
+            <div className="cluster-section">
+              <div className="section-label">DOSSIER</div>
+              <DossierBlock dos={cluster.dossier} />
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ── KeyInput ─────────────────────────────────────────────────────────────
+
+    function KeyInput({ label, value, onChange, show, onToggleShow, status }) {
+      const statusColor = { valid: "var(--green)", invalid: "var(--red)", absent: "var(--text3)" };
+      const statusMark  = { valid: "✓", invalid: "✗", absent: "—" };
+      return (
+        <div className="key-input-wrap">
+          <div className="key-input-label-row">
+            <label className="key-input-label">{label}</label>
+            {status && (
+              <span className="key-input-status" style={{color: statusColor[status] || "var(--text3)"}}>
+                {statusMark[status] || ""}
+              </span>
+            )}
+          </div>
+          <div className="key-input-field-wrap">
+            <input
+              type={show ? "text" : "password"}
+              value={value}
+              onChange={e => onChange(e.target.value)}
+              placeholder="sk-…"
+              autoComplete="off"
+              spellCheck={false}
+              className="key-input-field"
+            />
+            <button className="key-toggle-btn" onClick={onToggleShow} tabIndex={-1}>
+              {show ? "⊗" : "⊕"}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ── KeySidebar ───────────────────────────────────────────────────────────
+
+    function KeySidebar({ keys, setKeys, validationStatus, onValidate, validating }) {
+      const [show, setShow] = useState({ crustdata: false, anthropic: false });
+      const liveMode = validationStatus.crustdata === "valid" && validationStatus.anthropic === "valid";
+
+      return (
+        <aside className="key-sidebar">
+          <div className="sidebar-section-label">API Keys</div>
+
+          <div className="sidebar-notice">
+            Keys are used only for this session to run live queries against your own accounts.
+            They are never stored, logged, or saved — refresh the page and they're gone.
+          </div>
+
+          <KeyInput
+            label="Crustdata API Key"
+            value={keys.crustdata}
+            onChange={v => setKeys(k => ({...k, crustdata: v}))}
+            show={show.crustdata}
+            onToggleShow={() => setShow(s => ({...s, crustdata: !s.crustdata}))}
+            status={validationStatus.crustdata}
+          />
+
+          <KeyInput
+            label="Anthropic API Key"
+            value={keys.anthropic}
+            onChange={v => setKeys(k => ({...k, anthropic: v}))}
+            show={show.anthropic}
+            onToggleShow={() => setShow(s => ({...s, anthropic: !s.anthropic}))}
+            status={validationStatus.anthropic}
+          />
+
+          <button
+            className="validate-btn"
+            onClick={onValidate}
+            disabled={validating || (!keys.crustdata && !keys.anthropic)}
+          >
+            {validating ? "Validating…" : "Validate Keys"}
+          </button>
+
+          <div className="mode-indicator">
+            Mode:{" "}
+            <span style={{color: liveMode ? "var(--green)" : "var(--amber)"}}>
+              {liveMode ? "● Live" : "● Demo (cached)"}
+            </span>
+          </div>
+        </aside>
+      );
+    }
+
+    // ── RadarTab ─────────────────────────────────────────────────────────────
+
+    function RadarTab({ keys, liveMode }) {
+      const [anchor, setAnchor] = useState("OpenAI");
+      const [running, setRunning] = useState(false);
+      const [events, setEvents] = useState([]);
+      const [clusters, setClusters] = useState([]);
+      const [traceCollapsed, setTraceCollapsed] = useState(true);
+      const [error, setError] = useState(null);
+      const [credits, setCredits] = useState(0);
+      const [rows, setRows] = useState(0);
+      const [done, setDone] = useState(false);
+      const [demoMode, setDemoMode] = useState(false);
+
+      const handleEvent = useCallback((data) => {
+        setEvents(prev => [...prev, data]);
+        if (data.type === "credits") { setCredits(data.total_credits); setRows(data.total_rows); }
+        if (data.type === "cluster") {
+          setClusters(prev => {
+            const idx = prev.findIndex(c => c.rank === data.rank);
+            if (idx >= 0) { const n=[...prev]; n[idx]=data; return n; }
+            return [...prev, data].sort((a,b)=>(b.score||0)-(a.score||0));
+          });
+        }
+        if (data.type === "done" || data.type === "error") {
+          setRunning(false);
+          setDone(true);
+          if (data.type === "error") setError(data.message);
+        }
+      }, []);
+
+      const replayEvents = useCallback((evList) => {
+        let delay = 0;
+        for (const ev of evList) {
+          const d = delay;
+          setTimeout(() => handleEvent(ev), d);
+          delay += ev.type === "api_call" ? 400 : ev.type === "cluster" ? 200 : 80;
+        }
+        // ensure running is turned off after last event
+        setTimeout(() => setRunning(false), delay + 100);
+      }, [handleEvent]);
+
+      const handleRun = useCallback(async () => {
+        if (!anchor.trim()) return;
+        setRunning(true);
+        setEvents([]);
+        setClusters([]);
+        setError(null);
+        setCredits(0);
+        setRows(0);
+        setDone(false);
+        setTraceCollapsed(false);
+
+        const isUrl = anchor.startsWith("http");
+
+        if (liveMode) {
+          setDemoMode(false);
+          try {
+            const res = await fetch("/radar/stream", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                anchor: isUrl ? null : anchor,
+                anchor_linkedin_url: isUrl ? anchor : null,
+                crustdata_key: keys.crustdata || null,
+                anthropic_key: keys.anthropic || null,
+              }),
+            });
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+            while (true) {
+              const { done: streamDone, value } = await reader.read();
+              if (streamDone) break;
+              buffer += decoder.decode(value, { stream: true });
+              const parts = buffer.split("\n\n");
+              buffer = parts.pop();
+              for (const part of parts) {
+                const line = part.replace(/^data: /, "").trim();
+                if (!line) continue;
+                try { handleEvent(JSON.parse(line)); } catch {}
+              }
+            }
+          } catch (e) {
+            setError(String(e));
+            setRunning(false);
+          }
+        } else {
+          // Cached demo
+          setDemoMode(true);
+          const anchorKey = anchor.toLowerCase().replace(/\s+/g, "");
+          let data = null;
+          try {
+            const res = await fetch(`/demo/radar/${anchorKey}`);
+            if (res.ok) { data = await res.json(); }
+          } catch {}
+          if (!data) {
+            // Fallback to openai cache
+            try {
+              const res = await fetch("/demo/radar/openai");
+              if (res.ok) { data = await res.json(); }
+            } catch {}
+          }
+          if (!data) {
+            setError("No cached demo available. Enter API keys for a live run.");
+            setRunning(false);
+            return;
+          }
+          replayEvents(data.events);
+        }
+      }, [anchor, liveMode, keys, handleEvent, replayEvents]);
+
+      const hasTrace = events.length > 0;
+
+      return (
+        <div className="tab-content">
+          <div style={{marginBottom:20}}>
+            <p style={{fontSize:12,color:"var(--text3)",lineHeight:1.6,maxWidth:640}}>
+              Enter a company to surface clusters of employees who left together to co-found or join
+              the same new venture. Each cluster is scored on convergence, co-tenure, and stealth
+              signals, then adjudicated by Claude as a genuine forming team vs. coincidental movement.
+              {!liveMode && <span style={{color:"var(--amber)",marginLeft:6}}>Demo mode — add API keys in the sidebar for a live run.</span>}
+            </p>
+          </div>
+          <div className="input-row">
+            <input
+              className="anchor-input"
+              placeholder='e.g. OpenAI or https://linkedin.com/company/stripe'
+              value={anchor}
+              onChange={e => setAnchor(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && !running && handleRun()}
+            />
+            <button className="run-btn" onClick={handleRun} disabled={running || !anchor.trim()}>
+              {running ? <><span className="spinner" />Running…</> : "Run Radar →"}
+            </button>
+          </div>
+
+          {error && (
+            <div className="error-panel">ERROR: {error}</div>
+          )}
+
+          {hasTrace && (
+            <LiveTrace
+              events={events}
+              collapsed={traceCollapsed}
+              onToggle={() => setTraceCollapsed(v => !v)}
+              credits={credits}
+              rows={rows}
+            />
+          )}
+
+          {clusters.length > 0 && (
+            <>
+              <div className="results-header">
+                {clusters.length} CLUSTER{clusters.length !== 1 ? "S" : ""} FOUND
+                {demoMode
+                  ? <span className="demo-badge">DEMO (CACHED)</span>
+                  : <span className="live-badge">LIVE</span>
+                }
+              </div>
+              {clusters.map((c, i) => (
+                <ClusterCard key={c.rank ?? i} cluster={c} rank={i + 1} />
+              ))}
+            </>
+          )}
+
+          {done && clusters.length === 0 && !error && (
+            <div className="empty-state">
+              <div className="icon">◎</div>
+              <div>No clusters detected for this anchor.</div>
+              <div style={{color: "var(--text3)", fontSize: 12}}>Try a larger company or check that recently_changed_jobs returned results.</div>
+            </div>
+          )}
+
+          {!hasTrace && !running && (
+            <div className="empty-state">
+              <div className="icon">⬡</div>
+              <div>Enter an anchor company and run the radar.</div>
+              <div style={{color: "var(--text3)", fontSize: 12}}>
+                {liveMode ? "Results stream live as each cluster is scored." : "No API keys — will replay cached OpenAI demo."}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ── TalentFlowTab ────────────────────────────────────────────────────────
+
+    function TalentFlowTab({ keys, liveMode }) {
+      const [anchor, setAnchor] = useState("Stripe");
+      const [running, setRunning] = useState(false);
+      const [edges, setEdges] = useState([]);
+      const [error, setError] = useState(null);
+      const [queriedAnchor, setQueriedAnchor] = useState("");
+      const plotRef = useRef(null);
+
+      // Auto-load the Stripe cached demo on first render
+      useEffect(() => {
+        fetch("/demo/flow/stripe")
+          .then(r => r.ok ? r.json() : null)
+          .then(data => { if (data?.edges) { setEdges(data.edges); setQueriedAnchor("Stripe"); } })
+          .catch(() => {});
+      }, []);
+
+      const handleRun = useCallback(async () => {
+        if (!anchor.trim()) return;
+        setRunning(true);
+        setError(null);
+        setEdges([]);
+        setQueriedAnchor(anchor.trim());
+        try {
+          if (liveMode) {
+            // Live run via server (keys validated)
+            const res = await fetch(`/flow?anchor=${encodeURIComponent(anchor)}`);
+            const data = await res.json();
+            if (data.edges) setEdges(data.edges);
+            else if (data.message) setError(data.message);
+          } else {
+            // Cached demo — try /demo/flow/{anchor}, fall back to stripe
+            const slug = anchor.toLowerCase().replace(/\s+/g, "");
+            let res = await fetch(`/demo/flow/${slug}`);
+            if (!res.ok) res = await fetch("/demo/flow/stripe");
+            if (!res.ok) {
+              setError("No cached demo for this anchor. Enter API keys for a live run.");
+            } else {
+              const data = await res.json();
+              if (data.edges) setEdges(data.edges);
+            }
+          }
+        } catch (e) {
+          setError(String(e));
+        } finally {
+          setRunning(false);
+        }
+      }, [anchor, liveMode]);
+
+      // Build Sankey
+      useEffect(() => {
+        if (!plotRef.current || edges.length === 0) return;
+
+        // Collect unique nodes
+        const nodeSet = new Set();
+        edges.forEach(e => {
+          nodeSet.add(e.source);
+          nodeSet.add(e.target);
+        });
+        const nodes = Array.from(nodeSet);
+        const nodeIdx = Object.fromEntries(nodes.map((n, i) => [n, i]));
+
+        const TINY_THRESH = 25;
+
+        // Node colors: source=indigo, tiny/stealth=amber, normal=gray
+        const nodeColors = nodes.map((n, i) => {
+          // First node is the anchor (source)
+          if (i === 0) return "#6366f1";
+          // Find edges for this node
+          const incoming = edges.filter(e => e.target === n);
+          const hc = incoming[0]?.avg_headcount ?? incoming[0]?.headcount ?? null;
+          const isTiny = hc !== null && hc <= TINY_THRESH;
+          const isTarget = incoming.some(e => e.target_id === 0 || e.stealth);
+          return (isTiny || isTarget) ? "#f59e0b" : "#334155";
+        });
+
+        const sources = edges.map(e => nodeIdx[e.source] ?? 0);
+        const targets = edges.map(e => nodeIdx[e.target] ?? 0);
+        const values  = edges.map(e => e.weight ?? e.count ?? 1);
+
+        const data = [{
+          type: "sankey",
+          orientation: "h",
+          node: {
+            pad: 16,
+            thickness: 18,
+            line: { color: "#1e1e2e", width: 0.5 },
+            label: nodes,
+            color: nodeColors,
+            font: { family: "Inter, sans-serif", size: 12, color: "#e2e8f0" },
+          },
+          link: {
+            source: sources,
+            target: targets,
+            value: values,
+            color: sources.map(s => s === 0 ? "rgba(99,102,241,0.18)" : "rgba(51,65,85,0.18)"),
+          },
+        }];
+
+        const layout = {
+          paper_bgcolor: "#111118",
+          plot_bgcolor:  "#111118",
+          font: { family: "Inter, sans-serif", color: "#e2e8f0" },
+          margin: { l: 10, r: 10, t: 20, b: 10 },
+          height: 380,
+        };
+
+        Plotly.newPlot(plotRef.current, data, layout, { displayModeBar: false, responsive: true });
+      }, [edges]);
+
+      // Deduplicate + sort table rows
+      const tableRows = [...edges]
+        .sort((a, b) => (b.weight ?? b.count ?? 0) - (a.weight ?? a.count ?? 0))
+        .slice(0, 30);
+
+      return (
+        <div className="tab-content">
+          <div style={{marginBottom:20}}>
+            <p style={{fontSize:12,color:"var(--text3)",lineHeight:1.6,maxWidth:640}}>
+              Maps where a company's departing talent goes — revealing which destinations (startups,
+              competitors, stealth ventures) are systematically drawing people from the anchor.
+              Edge weight is the number of people who moved to each destination.
+              {!liveMode && <span style={{color:"var(--amber)",marginLeft:6}}>Requires live API keys — enter them in the sidebar.</span>}
+            </p>
+          </div>
+          <div className="input-row">
+            <input
+              className="anchor-input"
+              placeholder='e.g. Stripe or https://linkedin.com/company/stripe'
+              value={anchor}
+              onChange={e => setAnchor(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && !running && !(!liveMode) && handleRun()}
+            />
+            <button className="run-btn" onClick={handleRun} disabled={running || !anchor.trim() || !liveMode}>
+              {running ? <><span className="spinner" />Loading…</> : "Map Flow →"}
+            </button>
+          </div>
+
+          {error && <div className="error-panel">{error}</div>}
+
+          {edges.length > 0 && (
+            <>
+              <div className="sankey-wrap">
+                <div ref={plotRef} />
+              </div>
+              {/* provenance caption — real values from the run */}
+              {(() => {
+                const totalPeople = edges.reduce((s, e) => s + (e.weight ?? e.count ?? 0), 0);
+                const anchorDisplay = queriedAnchor.startsWith("http")
+                  ? queriedAnchor.split("/").pop() || queriedAnchor
+                  : queriedAnchor;
+                return (
+                  <div style={{
+                    fontSize:11, color:"var(--text3)", fontFamily:"var(--mono)",
+                    padding:"8px 12px", marginBottom:8,
+                    background:"var(--surface)", border:"1px solid var(--border)",
+                    borderRadius:4, lineHeight:1.7
+                  }}>
+                    <span style={{color:"var(--text2)"}}>Source:</span>{" "}
+                    Crustdata POST /person/search
+                    {" · "}
+                    <span style={{color:"var(--text2)"}}>Filter:</span>{" "}
+                    past_employers.company = {anchorDisplay}, recently_changed_jobs = true
+                    {" · "}
+                    <span style={{color:"var(--accent)"}}>{totalPeople}</span> total movers across{" "}
+                    <span style={{color:"var(--accent)"}}>{edges.length}</span> destinations
+                    {" · "}
+                    edge weight = person count
+                  </div>
+                );
+              })()}
+              <table className="flow-table">
+                <thead>
+                  <tr>
+                    <th>DESTINATION</th>
+                    <th>LEAVERS</th>
+                    <th>AVG HEADCOUNT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tableRows.map((e, i) => {
+                    const hc = e.avg_headcount ?? e.headcount ?? null;
+                    const isTiny = hc !== null && hc <= 25;
+                    return (
+                      <tr key={i}>
+                        <td>
+                          {e.target}
+                          {isTiny && <span className="stealth-flag">TINY</span>}
+                          {(e.target_id === 0 || e.stealth) && <span className="stealth-flag">STEALTH</span>}
+                        </td>
+                        <td>{e.weight ?? e.count ?? "—"}</td>
+                        <td>{hc !== null ? hc.toLocaleString() : "—"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </>
+          )}
+
+          {!running && edges.length === 0 && !error && (
+            <div className="empty-state">
+              <div className="icon">⟶</div>
+              <div>Enter an anchor to map where its alumni went.</div>
+              {!liveMode && (
+                <div style={{color: "var(--amber)", fontSize: 12, marginTop: 6}}>
+                  Enter API keys in the sidebar to map live talent flow.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ── ValidationTab ───────────────────────────────────────────────────────
+
+    const CASE_STUDIES = [
+      {
+        type: "POSITIVE",
+        dotClass: "case-dot-positive",
+        typeClass: "case-type-positive",
+        company: "Character.AI",
+        headline: "Co-tenure + convergence path catches a real startup-scale spinout.",
+        summary: "Both founders (Noam Shazeer and Daniel de Freitas) show Character.AI as their current role at T−3, T−6, and T−9 before the March 2023 Series A. Indexed headcount 257 passes the <500 headcount gate. Score: 73.9.",
+        metrics: [
+          { key: "Score", val: "73.9" },
+          { key: "Headcount", val: "257" },
+          { key: "Gate", val: "PASS (<500)" },
+        ],
+        note: "Headcount gate uses current indexed value, not a point-in-time snapshot — results may shift as companies grow.",
+      },
+      {
+        type: "GATE WORKING",
+        dotClass: "case-dot-gate",
+        typeClass: "case-type-gate",
+        company: "Sierra AI",
+        headline: "False-positive guard working as designed.",
+        summary: "Bret Taylor and Clay Bavor converged on Sierra, but Sierra's indexed headcount (757) exceeds the <500 threshold. The cluster is correctly demoted — demonstrating the detector does not fire on post-growth companies.",
+        metrics: [
+          { key: "Headcount", val: "757" },
+          { key: "Gate", val: "BLOCK (>500)" },
+          { key: "Verdict", val: "Suppressed" },
+        ],
+        note: "This is a success of the detector, not a miss.",
+      },
+      {
+        type: "METHOD BOUNDARY",
+        dotClass: "case-dot-boundary",
+        typeClass: "case-type-boundary",
+        company: "Sakana AI",
+        headline: "No co-movement signal by design — staggered departures.",
+        summary: "David Ha left Google in 2022; Llion Jones left in August 2023 — 14 months apart. No co-departure window → no cluster. Honest limitation: the engine detects coordinated simultaneous movement, not all eventual co-founders.",
+        metrics: [
+          { key: "Departure gap", val: "14 months" },
+          { key: "Window", val: "60 days" },
+          { key: "Cluster", val: "None" },
+        ],
+        note: "Not a detector bug. Staggered solo departures are outside the method's scope.",
+      },
+    ];
+
+    function ValidationTab() {
+      return (
+        <div className="tab-content">
+          <div style={{marginBottom:16}}>
+            <p style={{fontSize:12,color:"var(--text3)",lineHeight:1.6,maxWidth:640}}>
+              Case-study validation of the detector against known historical spinouts.
+              Not a large-sample recall claim — three cases chosen to verify the three structural
+              paths: co-tenure + convergence, the headcount gate, and the method boundary.
+            </p>
+          </div>
+          <div className="backtest-intro">
+            <div className="backtest-intro-title">CASE STUDY VALIDATION</div>
+            <div className="backtest-intro-desc">
+              Case-study validation — given the members, the engine scores real formations correctly and correctly rejects non-signals. Not a large-sample recall claim.
+            </div>
+          </div>
+
+          {CASE_STUDIES.map((c, i) => (
+            <div key={i} className="case-card">
+              <div className="case-header">
+                <div className={`case-dot ${c.dotClass}`} />
+                <span className={`case-type ${c.typeClass}`}>{c.type}</span>
+                <span className="case-company">{c.company}</span>
+              </div>
+              {c.headline && <div style={{fontSize:13,fontWeight:600,color:"var(--text)",marginBottom:8}}>{c.headline}</div>}
+              <div className="case-body">{c.summary}</div>
+              <div className="case-metrics">
+                {c.metrics.map((m, j) => (
+                  <div key={j} className="case-metric">
+                    <span className="case-metric-key">{m.key}: </span>
+                    <span className="case-metric-val">{m.val}</span>
+                  </div>
+                ))}
+              </div>
+              {c.note && <div className="case-note">{c.note}</div>}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // ── App ──────────────────────────────────────────────────────────────────
+
+    function App() {
+      const [tab, setTab] = useState("Radar");
+      const [keys, setKeys] = useState({ crustdata: "", anthropic: "" });
+      const [validationStatus, setValidationStatus] = useState({});
+      const [validating, setValidating] = useState(false);
+
+      const liveMode = validationStatus.crustdata === "valid"
+                    && validationStatus.anthropic === "valid";
+
+      const handleValidate = async () => {
+        setValidating(true);
+        try {
+          const res = await fetch("/validate-keys", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              crustdata_key: keys.crustdata || null,
+              anthropic_key: keys.anthropic || null,
+            }),
+          });
+          const data = await res.json();
+          setValidationStatus(data);
+        } catch (e) {
+          setValidationStatus({ crustdata: "invalid", anthropic: "invalid" });
+        } finally {
+          setValidating(false);
+        }
+      };
+
+      return (
+        <div className="main">
+          <Header tab={tab} setTab={setTab} />
+          <div style={{ display:"flex", minHeight:"calc(100vh - 64px)" }}>
+            <KeySidebar
+              keys={keys}
+              setKeys={setKeys}
+              validationStatus={validationStatus}
+              onValidate={handleValidate}
+              validating={validating}
+            />
+            <div style={{ flex:1, overflow:"hidden" }}>
+              {tab === "Radar"      && <RadarTab keys={keys} liveMode={liveMode} />}
+              {tab === "TalentFlow" && <TalentFlowTab keys={keys} liveMode={liveMode} />}
+              {tab === "Validation" && <ValidationTab />}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>

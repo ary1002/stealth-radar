@@ -1,0 +1,236 @@
+{
+  "anchor": "Stripe",
+  "total_leavers": 43,
+  "filter": "past_employers.company = Stripe, recently_changed_jobs = true",
+  "endpoint": "POST /person/search",
+  "edges": [
+    {
+      "source": "Stripe",
+      "target": "Google",
+      "target_id": 4926893,
+      "weight": 3
+    },
+    {
+      "source": "Stripe",
+      "target": "Cursor",
+      "target_id": 820671,
+      "weight": 2
+    },
+    {
+      "source": "Stripe",
+      "target": "OpenAI",
+      "target_id": 631466,
+      "weight": 2
+    },
+    {
+      "source": "Stripe",
+      "target": "Anthropic",
+      "target_id": 635252,
+      "weight": 2
+    },
+    {
+      "source": "Stripe",
+      "target": "Hurone AI",
+      "target_id": 2164056,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Thomson Reuters",
+      "target_id": 6175356,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Microsoft",
+      "target_id": 2110301,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "CrowdStrike",
+      "target_id": 631329,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Innovation Endeavors",
+      "target_id": 991116,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Crosswalk Labs",
+      "target_id": 1216803,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Profound",
+      "target_id": 2165682,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Liquid AI",
+      "target_id": 1033871,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Valon",
+      "target_id": 632865,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Cogent Security",
+      "target_id": 8620086,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Sierra",
+      "target_id": 1128961,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Lovable",
+      "target_id": 2208815,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Finom",
+      "target_id": 673941,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Citadel LLC",
+      "target_id": 1037153,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Stealth",
+      "target_id": 706487,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Amazon Web Services (AWS)",
+      "target_id": 1033829,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Stealth Startup",
+      "target_id": 6040342,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Anysphere",
+      "target_id": 828071,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Kin Insurance",
+      "target_id": 632059,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Palantir Technologies",
+      "target_id": 663220,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Gusto",
+      "target_id": 634921,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Hireline.com",
+      "target_id": 6408505,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Modal Labs",
+      "target_id": 1045944,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Clay",
+      "target_id": 1010356,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Uber Freight",
+      "target_id": 3794890,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Speak",
+      "target_id": 697945,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Figma",
+      "target_id": 631408,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "DXC Technology",
+      "target_id": 682064,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Zapier",
+      "target_id": 808108,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Render",
+      "target_id": 632127,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Appian",
+      "target_id": 681035,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "One North Talent Group",
+      "target_id": 2706010,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Something New",
+      "target_id": 0,
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "TikTok",
+      "target_id": 1034655,
+      "weight": 1
+    }
+  ]
+}

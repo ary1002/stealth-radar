@@ -1,0 +1,292 @@
+{
+  "anchor": "OpenAI",
+  "events": [
+    {
+      "type": "stage",
+      "stage": "cohort_pull",
+      "status": "start"
+    },
+    {
+      "type": "api_call",
+      "endpoint": "POST /person/search",
+      "filter_summary": "past_employers.name = OpenAI",
+      "rows": 50,
+      "credits": 3.0,
+      "latency_ms": 19872
+    },
+    {
+      "type": "credits",
+      "total_credits": 3.0,
+      "total_rows": 50
+    },
+    {
+      "type": "stage",
+      "stage": "cohort_pull",
+      "status": "done",
+      "count": 50
+    },
+    {
+      "type": "stage",
+      "stage": "parse",
+      "status": "start"
+    },
+    {
+      "type": "stage",
+      "stage": "parse",
+      "status": "done",
+      "count": 50
+    },
+    {
+      "type": "stage",
+      "stage": "leavers",
+      "status": "start"
+    },
+    {
+      "type": "stage",
+      "stage": "leavers",
+      "status": "done",
+      "count": 40
+    },
+    {
+      "type": "stage",
+      "stage": "signals",
+      "status": "start"
+    },
+    {
+      "type": "stage",
+      "stage": "signals",
+      "status": "done",
+      "count": 40
+    },
+    {
+      "type": "stage",
+      "stage": "clustering",
+      "status": "start"
+    },
+    {
+      "type": "stage",
+      "stage": "clustering",
+      "status": "done",
+      "count": 4
+    },
+    {
+      "type": "stage",
+      "stage": "scoring",
+      "status": "start"
+    },
+    {
+      "type": "stage",
+      "stage": "scoring",
+      "status": "done",
+      "count": 4
+    },
+    {
+      "type": "stage",
+      "stage": "adjudication",
+      "status": "start"
+    },
+    {
+      "type": "cluster",
+      "rank": 1,
+      "tier": "Low",
+      "score": 47.08954522038036,
+      "members": [
+        {
+          "name": "Logan Kilpatrick",
+          "headline": "Member of Technical Staff",
+          "current_title": "Member of Technical Staff",
+          "current_company": "Google DeepMind",
+          "current_start_date": "2026-05-01",
+          "anchor_tenure_months": 15.0
+        },
+        {
+          "name": "Lei Zhang",
+          "headline": "Staff Research Scientist at DeepMind",
+          "current_title": "Staff Research Scientist",
+          "current_company": "Google DeepMind",
+          "current_start_date": "2026-04-01",
+          "anchor_tenure_months": 17.0
+        }
+      ],
+      "adjudication": {
+        "label": "coincidental",
+        "confidence": 0.72,
+        "rationale": "Only two people converging on the same large employer (Google DeepMind) with zero co-tenure overlap and zero stealth/founder signal is more consistent with independent talent poaching by a major competitor than deliberate team formation."
+      },
+      "dossier": null
+    },
+    {
+      "type": "cluster",
+      "rank": 2,
+      "tier": "High",
+      "score": 88.57393046835541,
+      "members": [
+        {
+          "name": "Julia Villagra",
+          "headline": "Former Chief People Officer, OpenAI | Former Head of People, Hudson River Trading",
+          "current_title": "Co-Founder, Member of the Operations Staff",
+          "current_company": "Core Automation",
+          "current_start_date": "2026-04-01",
+          "anchor_tenure_months": 1.0
+        },
+        {
+          "name": "Francis Z.",
+          "headline": "Core automation",
+          "current_title": "Co-Founder and Member of the Technical Staff",
+          "current_company": "Core Automation",
+          "current_start_date": "2026-04-01",
+          "anchor_tenure_months": 32.0
+        }
+      ],
+      "adjudication": {
+        "label": "forming_team",
+        "confidence": 0.92,
+        "rationale": "Both individuals converged on the same stealth company (Core Automation) at the exact same start date with explicit co-founder titles, despite very different tenures at OpenAI, strongly indicating intentional team formation rather than coincidence or layoff; the only disconfirming note is the group is small (2 people) and one had only 1 month tenure at OpenAI, suggesting possible opportunistic recruitment rather than a long-gestating plan."
+      },
+      "dossier": {
+        "summary": "Two ex-OpenAI operators co-founded stealth startup Core Automation in April 2026. Julia Villagra (former Chief People Officer, OpenAI; prior Head of People, Hudson River Trading) pairs with Francis Z. (32 months at OpenAI, technical staff). Both joined simultaneously, company is tiny/stealth, destination convergence is perfect. No public description yet.",
+        "members": [
+          "Julia Villagra \u2013 ex-CPO OpenAI, ex-Head of People Hudson River Trading; Co-Founder/Ops",
+          "Francis Z. \u2013 32-month OpenAI technical tenure; Co-Founder/Technical Staff"
+        ],
+        "evidence_timeline": [
+          "~Aug 2023: Francis Z. joins OpenAI (implied by 32-month tenure ending ~Apr 2026)",
+          "Apr 2026: Both Julia Villagra and Francis Z. simultaneously depart OpenAI and co-found Core Automation",
+          "Apr 2026: Core Automation appears in stealth; no public product, no open roles flagged (open_to: 0.0)"
+        ],
+        "thesis": "A senior ops/people executive and a long-tenured technical insider from OpenAI are building something together under the name 'Core Automation' \u2014 likely AI-native workflow or enterprise automation, given their combined background in scaling frontier-AI orgs and technical infrastructure. The synchronized exit, stealth posture, and founder-only headcount signal early pre-seed formation. The 32-month OpenAI technical tenure on the engineering side is the real signal; Villagra's CPO pedigree suggests they intend to scale fast and hire aggressively once the product thesis is locked.",
+        "recommended_action": "Reach out immediately via warm OpenAI network path. Offer pre-product-market-fit capital or strategic intro before they run a formal process. Anchor conversation on Villagra (more public profile); use her HRT\u2192OpenAI arc as the opener.",
+        "urgency": "now"
+      }
+    },
+    {
+      "type": "cluster",
+      "rank": 3,
+      "tier": "Medium",
+      "score": 57.89998752228176,
+      "members": [
+        {
+          "name": "Bilva C.",
+          "headline": "product policy, frontier risk @anthropic",
+          "current_title": "product policy, frontier risk",
+          "current_company": "Anthropic",
+          "current_start_date": "2026-04-01",
+          "anchor_tenure_months": 12.0
+        },
+        {
+          "name": "Abby C.",
+          "headline": "Engineering at Anthropic | Part-time Runway & High Fashion Model at Bella | Ex-OpenAI | I do not do referal",
+          "current_title": "Member of Technical Staff",
+          "current_company": "Anthropic",
+          "current_start_date": "2026-04-01",
+          "anchor_tenure_months": 14.9
+        },
+        {
+          "name": "Katherine Hill",
+          "headline": "Member of Technical Staff",
+          "current_title": "Member of Technical Staff",
+          "current_company": "Anthropic",
+          "current_start_date": "2026-04-01",
+          "anchor_tenure_months": 11.0
+        },
+        {
+          "name": "Tim Salimans",
+          "headline": "Member of Technical Staff at Anthropic",
+          "current_title": "Member of Technical Staff",
+          "current_company": "Anthropic",
+          "current_start_date": "2026-04-01",
+          "anchor_tenure_months": 26.0
+        },
+        {
+          "name": "Yan Pu",
+          "headline": "GTM Strategy and Operations at Anthropic",
+          "current_title": "GTM Strategy and Operations",
+          "current_company": "Anthropic",
+          "current_start_date": "2026-04-01",
+          "anchor_tenure_months": 13.0
+        }
+      ],
+      "adjudication": {
+        "label": "coincidental",
+        "confidence": 0.55,
+        "rationale": "All five landed at Anthropic in April 2026 with tight timing, but they span unrelated functions (policy, engineering, GTM, research) with low co-tenure overlap (0.3), no stealth/founding signal, and Anthropic is a large well-known rival that routinely recruits from OpenAI en masse, making independent individual hires the more parsimonious explanation than coordinated team formation."
+      },
+      "dossier": {
+        "summary": "Five ex-OpenAI employees converged on Anthropic in a tight April 2026 wave. Roles span technical staff (3x MTS), product policy/frontier risk, and GTM strategy \u2014 a cross-functional cluster suggesting coordinated or socially-networked departure, not random attrition. Prior OpenAI tenures range 11\u201326 months, indicating mid-to-senior contributors, not entry-level churn.",
+        "members": [
+          "Bilva C. \u2014 Product Policy, Frontier Risk @ Anthropic (Apr 2026); 12mo OpenAI tenure",
+          "Abby C. \u2014 MTS @ Anthropic (Apr 2026); 14.9mo OpenAI tenure; self-flagged 'Ex-OpenAI'",
+          "Katherine Hill \u2014 MTS @ Anthropic (Apr 2026); 11mo OpenAI tenure",
+          "Tim Salimans \u2014 MTS @ Anthropic (Apr 2026); 26mo OpenAI tenure \u2014 longest tenure, likely senior signal",
+          "Yan Pu \u2014 GTM Strategy & Ops @ Anthropic (Apr 2026); 13mo OpenAI tenure"
+        ],
+        "evidence_timeline": [
+          "~May 2024\u2013Jun 2025: Members join OpenAI across overlapping windows (inferred from tenure lengths)",
+          "Apr 2026: All 5 start at Anthropic simultaneously \u2014 window_tightness score = 1.0 (maximum)",
+          "Apr 2026: destination_convergence = 1.0, shared_destination = 1.0 \u2014 zero dispersion to other companies",
+          "No stealth activity detected (stealth_founder_ratio = 0.0)",
+          "co_tenure = 0.3 \u2014 partial but meaningful overlap at OpenAI, not all in same team/time"
+        ],
+        "thesis": "This is a high-conviction coordinated talent exodus from OpenAI to Anthropic. The April 2026 synchronization across 5 people in distinct functions (safety policy, engineering, GTM) signals a network-pull event \u2014 likely one anchor hire triggered referrals. Tim Salimans (26mo tenure) is the probable anchor given seniority. Cross-functional composition (not just engineers) suggests Anthropic may be building out a specific product or safety initiative requiring a full stack team. This cluster is a strong leading indicator of OpenAI organizational stress or a targeted Anthropic recruiting push in safety/frontier-risk domains.",
+        "recommended_action": "Reach out to Tim Salimans and Bilva C. immediately \u2014 Salimans as likely anchor/connector, Bilva as rare policy+frontier-risk profile. Map their OpenAI networks for additional departure signals. For investors: flag Anthropic's ability to recruit cross-functional OpenAI talent at scale as a competitive moat signal worth weighting in diligence.",
+        "urgency": "now"
+      }
+    },
+    {
+      "type": "cluster",
+      "rank": 4,
+      "tier": "Medium",
+      "score": 60.57393046835541,
+      "members": [
+        {
+          "name": "Gerald Torres",
+          "headline": "L6/L7 - Cloud AI/ML SWE Sourcer",
+          "current_title": "Cloud AI/ML SWE Sourcer",
+          "current_company": "Google",
+          "current_start_date": "2026-04-01",
+          "anchor_tenure_months": 24.0
+        },
+        {
+          "name": "Ben Goodger",
+          "headline": "VP Engineering, Labs",
+          "current_title": "Vice President",
+          "current_company": "Google",
+          "current_start_date": "2026-04-01",
+          "anchor_tenure_months": 22.0
+        }
+      ],
+      "adjudication": {
+        "label": "coincidental",
+        "confidence": 0.7,
+        "rationale": "Only two people moving to a large destination (Google) with no stealth/founder signal and zero open_to score makes this most likely independent career moves rather than intentional team formation, despite tight timing."
+      },
+      "dossier": {
+        "summary": "Two OpenAI alumni \u2014 a VP-level engineering leader and a senior AI/ML recruiting specialist \u2014 both landed at Google simultaneously in April 2026 after overlapping ~2-year stints at OpenAI. The pairing of a senior engineering exec (Ben Goodger) with a dedicated AI/ML sourcer (Gerald Torres) is structurally significant: it suggests an active, coordinated team-build at Google Labs, not coincidental lateral moves.",
+        "members": [
+          "Ben Goodger \u2014 VP Engineering, Labs @ Google (joined Apr 2026); ~22 months at OpenAI",
+          "Gerald Torres \u2014 L6/L7 Cloud AI/ML SWE Sourcer @ Google (joined Apr 2026); ~24 months at OpenAI"
+        ],
+        "evidence_timeline": [
+          "~Jun 2024: Gerald Torres joins OpenAI (inferred from 24-month tenure)",
+          "~Jun 2024: Ben Goodger joins OpenAI (inferred from 22-month tenure)",
+          "Apr 2026: Both depart OpenAI and surface simultaneously at Google \u2014 destination_convergence = 1.0, window_tightness = 1.0",
+          "Apr 2026: Goodger titled VP Engineering, Labs \u2014 a senior leadership seat implying mandate to staff a team",
+          "Apr 2026: Torres titled Cloud AI/ML SWE Sourcer \u2014 role directly supports headcount build under Goodger or adjacent Labs leadership"
+        ],
+        "thesis": "Goodger is standing up or expanding a Cloud AI/ML engineering team within Google Labs and brought Torres along specifically to source for it. Their co-tenure at OpenAI means Torres has direct knowledge of Goodger's hiring bar, target profiles, and likely candidate pipeline from OpenAI's talent network. This cluster signals an imminent, high-velocity hiring wave for senior AI/ML engineers into Google Labs \u2014 sourced heavily from OpenAI and adjacent frontier-AI orgs. For a talent scout or competing firm, this is a leading indicator of: (1) Google Labs prioritizing cloud-native AI/ML infrastructure, and (2) OpenAI experiencing quiet senior-layer attrition worth monitoring.",
+        "recommended_action": "Engage Ben Goodger directly on his team-build scope and open roles; map his OpenAI-era network for candidates he and Torres will target. Simultaneously, audit OpenAI's L6/L7 engineering bench for secondary departure signals. If representing candidates, fast-track any cloud AI/ML SWEs with OpenAI or DeepMind backgrounds \u2014 Torres is actively sourcing this profile now.",
+        "urgency": "now"
+      }
+    },
+    {
+      "type": "stage",
+      "stage": "adjudication",
+      "status": "done",
+      "count": 4
+    },
+    {
+      "type": "done",
+      "total_clusters": 4
+    }
+  ]
+}
