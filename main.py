@@ -119,6 +119,9 @@ async def run_with_queue(anchor_name=None, anchor_linkedin_url=None, event_queue
     async def emit(event: dict):
         if event_queue is not None:
             await event_queue.put(event)
+            # Yield to the event loop so the SSE generator can flush this
+            # event over the network before the next one is queued.
+            await asyncio.sleep(0)
 
     total_credits = 0.0
     total_rows = 0

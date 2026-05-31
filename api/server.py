@@ -167,16 +167,16 @@ async def validate_keys(req: ValidateKeysRequest):
     if req.crustdata_key:
         try:
             async with _httpx.AsyncClient(timeout=10) as client:
-                r = await client.post(
-                    "https://api.crustdata.com/company/identify",
+                # GET /user/credits/ — free, returns 200 + balance on valid key,
+                # 401/403 on invalid key. No credits consumed.
+                r = await client.get(
+                    "https://api.crustdata.com/user/credits/",
                     headers={
                         "Authorization": f"Bearer {req.crustdata_key}",
                         "x-api-version": "2025-11-01",
-                        "content-type": "application/json",
                     },
-                    json={"company_name": "Google"},
                 )
-            crustdata_status = "valid" if r.status_code < 400 else "invalid"
+            crustdata_status = "valid" if r.status_code == 200 else "invalid"
         except Exception:
             crustdata_status = "invalid"
 

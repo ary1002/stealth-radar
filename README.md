@@ -6,6 +6,35 @@ Stealth Radar detects forming startup teams by analysing the employment graph. I
 
 ---
 
+## Running locally
+
+**Requirements:** Python 3.11+
+
+```bash
+# 1. Clone and install dependencies
+git clone <repo-url> && cd stealth-radar
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+# 2. Start the server
+uvicorn api.server:app --reload --port 8000
+
+# 3. Open in browser
+open http://localhost:8000
+```
+
+The app loads instantly with a cached demo (OpenAI Radar + Stripe TalentFlow) — no API keys needed to explore it.
+
+**For live runs**, enter your own keys in the sidebar:
+- **Crustdata API key** — from [crustdata.com](https://crustdata.com). Each Radar run costs ~$1.50 (50 profiles × $0.03/result).
+- **Anthropic API key** — from [console.anthropic.com](https://console.anthropic.com). Used for cluster adjudication and dossier generation.
+
+Click **Validate Keys** before running — it probes a free Crustdata endpoint and a minimal Anthropic call to confirm both keys work without spending significant credits.
+
+Keys are held in browser memory only and discarded on page refresh. They are never logged, stored, or sent anywhere except the two API providers.
+
+---
+
 ## What it does
 
 Most startup intelligence arrives too late: the announcement, the TechCrunch article, the funding round. Stealth Radar operates on a different signal — **co-movement in the talent graph**. When two or three people who worked together quietly leave the same company within a tight window and end up at the same tiny new employer (or both list "Stealth" in their LinkedIn headline), that pattern is detectable and scoreable well before it becomes news.

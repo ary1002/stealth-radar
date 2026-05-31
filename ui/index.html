@@ -1160,41 +1160,38 @@
             while (true) {
               const { done: streamDone, value } = await reader.read();
               if (streamDone) break;
-              buffer += decoder.decode(value, { stream: true });
+              // normalise \r\n to \n before splitting
+              buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, "\n");
               const parts = buffer.split("\n\n");
-              buffer = parts.pop();
+              buffer = parts.pop() ?? "";
               for (const part of parts) {
-                const line = part.replace(/^data: /, "").trim();
-                if (!line) continue;
-                try { handleEvent(JSON.parse(line)); } catch {}
+                for (const line of part.split("\n")) {
+                  if (!line.startsWith("data:")) continue;
+                  const json = line.slice(5).trim();
+                  if (!json) continue;
+                  try { handleEvent(JSON.parse(json)); } catch {}
+                }
               }
             }
           } catch (e) {
             setError(String(e));
+          } finally {
             setRunning(false);
           }
         } else {
-          // Cached demo
-          setDemoMode(true);
-          const anchorKey = anchor.toLowerCase().replace(/\s+/g, "");
-          let data = null;
-          try {
-            const res = await fetch(`/demo/radar/${anchorKey}`);
-            if (res.ok) { data = await res.json(); }
-          } catch {}
-          if (!data) {
-            // Fallback to openai cache
+          // Demo mode — only serve cache for the exact supported anchor
+          const normalized = anchor.trim().toLowerCase();
+          if (normalized === "openai") {
+            setDemoMode(true);
             try {
               const res = await fetch("/demo/radar/openai");
-              if (res.ok) { data = await res.json(); }
+              if (res.ok) { replayEvents((await res.json()).events); return; }
             } catch {}
+            setError("Could not load cached demo.");
+          } else {
+            setError(`No cached demo for "${anchor}". Type "OpenAI" for a demo, or enter API keys in the sidebar for a live run.`);
           }
-          if (!data) {
-            setError("No cached demo available. Enter API keys for a live run.");
-            setRunning(false);
-            return;
-          }
-          replayEvents(data.events);
+          setRunning(false);
         }
       }, [anchor, liveMode, keys, handleEvent, replayEvents]);
 
@@ -1265,7 +1262,7 @@
               <div className="icon">⬡</div>
               <div>Enter an anchor company and run the radar.</div>
               <div style={{color: "var(--text3)", fontSize: 12}}>
-                {liveMode ? "Results stream live as each cluster is scored." : "No API keys — will replay cached OpenAI demo."}
+                {liveMode ? "Results stream live as each cluster is scored." : 'Type "OpenAI" to replay a cached demo, or enter API keys for any live anchor.'}
               </div>
             </div>
           )}
@@ -1283,13 +1280,7 @@
       const [queriedAnchor, setQueriedAnchor] = useState("");
       const plotRef = useRef(null);
 
-      // Auto-load the Stripe cached demo on first render
-      useEffect(() => {
-        fetch("/demo/flow/stripe")
-          .then(r => r.ok ? r.json() : null)
-          .then(data => { if (data?.edges) { setEdges(data.edges); setQueriedAnchor("Stripe"); } })
-          .catch(() => {});
-      }, []);
+      // No auto-load — user must explicitly run to see results.
 
       const handleRun = useCallback(async () => {
         if (!anchor.trim()) return;
@@ -1305,6 +1296,7 @@
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
+
                 anchor: isUrl ? null : anchor,
                 anchor_linkedin_url: isUrl ? anchor : null,
                 crustdata_key: keys.crustdata || null,
@@ -1315,15 +1307,20 @@
             if (data.edges) setEdges(data.edges);
             else if (data.message) setError(data.message);
           } else {
-            // Cached demo — try /demo/flow/{anchor}, fall back to stripe
-            const slug = anchor.toLowerCase().replace(/\s+/g, "");
-            let res = await fetch(`/demo/flow/${slug}`);
-            if (!res.ok) res = await fetch("/demo/flow/stripe");
-            if (!res.ok) {
-              setError("No cached demo for this anchor. Enter API keys for a live run.");
+            // Demo mode — only serve cache for the exact supported anchor
+            const normalized = anchor.trim().toLowerCase();
+            if (normalized === "stripe") {
+              try {
+                const res = await fetch("/demo/flow/stripe");
+                if (res.ok) {
+                  const data = await res.json();
+                  if (data.edges) { setEdges(data.edges); setQueriedAnchor("Stripe"); }
+                } else {
+                  setError("Could not load cached demo.");
+                }
+              } catch (e) { setError(String(e)); }
             } else {
-              const data = await res.json();
-              if (data.edges) setEdges(data.edges);
+              setError(`No cached demo for "${anchor}". Type "Stripe" for a demo, or enter API keys in the sidebar for a live run.`);
             }
           }
         } catch (e) {
@@ -1406,7 +1403,7 @@
               Maps where a company's departing talent goes — revealing which destinations (startups,
               competitors, stealth ventures) are systematically drawing people from the anchor.
               Edge weight is the number of people who moved to each destination.
-              {!liveMode && <span style={{color:"var(--amber)",marginLeft:6}}>Requires live API keys — enter them in the sidebar.</span>}
+              {!liveMode && <span style={{color:"var(--amber)",marginLeft:6}}>Type "Stripe" for a cached demo, or enter API keys for any live anchor.</span>}
             </p>
           </div>
           <div className="input-row">
@@ -1415,9 +1412,9 @@
               placeholder='e.g. Stripe or https://linkedin.com/company/stripe'
               value={anchor}
               onChange={e => setAnchor(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && !running && !(!liveMode) && handleRun()}
+              onKeyDown={e => e.key === "Enter" && !running && handleRun()}
             />
-            <button className="run-btn" onClick={handleRun} disabled={running || !anchor.trim() || !liveMode}>
+            <button className="run-btn" onClick={handleRun} disabled={running || !anchor.trim()}>
               {running ? <><span className="spinner" />Loading…</> : "Map Flow →"}
             </button>
           </div>
