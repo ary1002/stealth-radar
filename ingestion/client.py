@@ -8,6 +8,8 @@ from config import CRUSTDATA_BASE, CRUSTDATA_API_KEY, API_VERSION, RATE_LIMIT_RP
 class CrustdataClient:
     def __init__(self, rps=RATE_LIMIT_RPS, api_key: str | None = None):
         _key = api_key or CRUSTDATA_API_KEY
+        if not _key:
+            raise ValueError("Crustdata API key is required. Enter it in the sidebar.")
         self._sem = asyncio.Semaphore(rps)
         self._http = httpx.AsyncClient(
             base_url=CRUSTDATA_BASE,

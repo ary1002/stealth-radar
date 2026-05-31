@@ -2,8 +2,9 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-CRUSTDATA_API_KEY = os.environ["CRUSTDATA_API_KEY"]
-ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
+# Optional at startup — keys must be provided per-request when deploying without env vars.
+CRUSTDATA_API_KEY = os.environ.get("CRUSTDATA_API_KEY", "")
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 CRUSTDATA_BASE = "https://api.crustdata.com"
 API_VERSION    = "2025-11-01"

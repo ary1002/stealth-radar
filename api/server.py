@@ -232,13 +232,23 @@ async def radar(req: RadarRequest):
     return output
 
 
-@app.get("/flow")
-async def flow(anchor: str = Query(..., description="Anchor company name or LinkedIn URL")):
-    """Return TalentFlow edge list for the anchor."""
+class FlowRequest(BaseModel):
+    anchor: Optional[str] = None
+    anchor_linkedin_url: Optional[str] = None
+    crustdata_key: Optional[str] = None
+    anthropic_key: Optional[str] = None
+
+
+@app.post("/flow")
+async def flow(req: FlowRequest):
+    """Return TalentFlow edge list for the anchor. Keys come from request body."""
+    anchor = req.anchor or req.anchor_linkedin_url or ""
     is_url = anchor.startswith("http")
     results = await main.run(
         anchor_name=None if is_url else anchor,
         anchor_linkedin_url=anchor if is_url else None,
+        crustdata_key=req.crustdata_key or None,
+        anthropic_key=req.anthropic_key or None,
     )
 
     seen = set()

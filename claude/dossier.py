@@ -12,7 +12,10 @@ DOSSIER_SYS = (
 
 
 def dossier(cluster_summary: dict, anthropic_key: str | None = None) -> dict:
-    client = Anthropic(api_key=anthropic_key or ANTHROPIC_API_KEY)
+    _key = anthropic_key or ANTHROPIC_API_KEY
+    if not _key:
+        raise ValueError("Anthropic API key is required. Enter it in the sidebar.")
+    client = Anthropic(api_key=_key)
     msg = client.messages.create(
         model=CLAUDE_MODEL,
         max_tokens=900,

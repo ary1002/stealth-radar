@@ -1299,8 +1299,18 @@
         setQueriedAnchor(anchor.trim());
         try {
           if (liveMode) {
-            // Live run via server (keys validated)
-            const res = await fetch(`/flow?anchor=${encodeURIComponent(anchor)}`);
+            // Live run via server — keys in POST body, never in URL
+            const isUrl = anchor.startsWith("http");
+            const res = await fetch("/flow", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                anchor: isUrl ? null : anchor,
+                anchor_linkedin_url: isUrl ? anchor : null,
+                crustdata_key: keys.crustdata || null,
+                anthropic_key: keys.anthropic || null,
+              }),
+            });
             const data = await res.json();
             if (data.edges) setEdges(data.edges);
             else if (data.message) setError(data.message);
