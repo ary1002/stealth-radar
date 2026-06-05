@@ -1,11 +1,29 @@
 import asyncio
 import time
 from ingestion.client import CrustdataClient
+
+_FOUNDER_TERMS = {"founder", "co-founder", "cofounder", "founding"}
+
+
+def _is_explicit_founding_team(cluster) -> bool:
+    """Return True if ≥50% of cluster members have an explicit founder/co-founder
+    title at their current destination.  When true, the headcount gate is bypassed —
+    Crustdata's indexed headcount for the company_id is stale or misattributed,
+    and the self-reported founding role is the authoritative signal.
+    """
+    if not cluster:
+        return False
+    founders = sum(
+        1 for p in cluster
+        if p.current_role and p.current_role.title
+        and any(ft in p.current_role.title.lower() for ft in _FOUNDER_TERMS)
+    )
+    return founders >= len(cluster) / 2
 from ingestion.cohort import pull_cohort, COHORT_FIELDS, SORTS
 from detect.parse import parse_person
 from detect.leavers import is_leaver, anchor_role
 from detect.signals import tag
-from detect.cluster import strong_clusters, medium_clusters
+from detect.cluster import strong_clusters, medium_clusters, postprocess_clusters
 from score.model import cluster_features, score_clusters, tier
 from claude.adjudicate import adjudicate
 from claude.dossier import dossier
@@ -47,7 +65,10 @@ async def run(anchor_name=None, anchor_linkedin_url=None,
     strong_cluster_pairs = strong_clusters(leavers)
     strong_cluster_groups = [g for _, g in strong_cluster_pairs]
     medium_cluster_groups = medium_clusters(leavers, tags, anchor_name=anchor_name)
-    clusters = strong_cluster_groups + medium_cluster_groups
+    clusters = postprocess_clusters(
+        strong_cluster_groups + medium_cluster_groups,
+        anchor_name=anchor_name,
+    )
 
     feats = [cluster_features(c, tags, anchor_name=anchor_name) for c in clusters]
     scores = score_clusters(feats)
@@ -55,7 +76,8 @@ async def run(anchor_name=None, anchor_linkedin_url=None,
     results = []
     for cluster, score, feat in zip(clusters, scores, feats):
         tier_label = tier(float(score))
-        kind = "strong" if cluster in strong_cluster_groups else "medium"
+        dest_ids = {p.current_role.company_id for p in cluster if p.current_role and p.current_role.company_id}
+        kind = "strong" if len(dest_ids) == 1 else "medium"
 
         # Demotion: large-destination strong clusters cannot be High or forming_team.
         # They are VISIBLE but capped so they don't masquerade as stealth signals.
@@ -63,7 +85,8 @@ async def run(anchor_name=None, anchor_linkedin_url=None,
             dest_hcs = [p.current_role.headcount_latest
                         for p in cluster
                         if p.current_role and p.current_role.headcount_latest is not None]
-            if dest_hcs and max(dest_hcs) >= STRONG_CLUSTER_MAX_HEADCOUNT:
+            if (dest_hcs and max(dest_hcs) >= STRONG_CLUSTER_MAX_HEADCOUNT
+                    and not _is_explicit_founding_team(cluster)):
                 if tier_label == "High":
                     tier_label = "Medium"
                 is_large_dest = True
@@ -201,7 +224,10 @@ async def run_with_queue(anchor_name=None, anchor_linkedin_url=None, event_queue
     strong_cluster_pairs = strong_clusters(leavers)
     strong_cluster_groups = [g for _, g in strong_cluster_pairs]
     medium_cluster_groups = medium_clusters(leavers, tags, anchor_name=anchor_name)
-    clusters = strong_cluster_groups + medium_cluster_groups
+    clusters = postprocess_clusters(
+        strong_cluster_groups + medium_cluster_groups,
+        anchor_name=anchor_name,
+    )
     await emit({"type": "stage", "stage": "clustering", "status": "done", "count": len(clusters)})
 
     # ── Stage: scoring ────────────────────────────────────────────────────────
@@ -216,7 +242,8 @@ async def run_with_queue(anchor_name=None, anchor_linkedin_url=None, event_queue
     results = []
     for idx, (cluster, score, feat) in enumerate(zip(clusters, scores, feats)):
         tier_label = tier(float(score))
-        kind = "strong" if cluster in strong_cluster_groups else "medium"
+        dest_ids = {p.current_role.company_id for p in cluster if p.current_role and p.current_role.company_id}
+        kind = "strong" if len(dest_ids) == 1 else "medium"
 
         # Demotion: large-destination strong clusters cannot be High or forming_team.
         # They are VISIBLE but capped so they don't masquerade as stealth signals.
@@ -224,7 +251,8 @@ async def run_with_queue(anchor_name=None, anchor_linkedin_url=None, event_queue
             dest_hcs = [p.current_role.headcount_latest
                         for p in cluster
                         if p.current_role and p.current_role.headcount_latest is not None]
-            if dest_hcs and max(dest_hcs) >= STRONG_CLUSTER_MAX_HEADCOUNT:
+            if (dest_hcs and max(dest_hcs) >= STRONG_CLUSTER_MAX_HEADCOUNT
+                    and not _is_explicit_founding_team(cluster)):
                 if tier_label == "High":
                     tier_label = "Medium"
                 is_large_dest = True
