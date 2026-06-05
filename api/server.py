@@ -333,6 +333,103 @@ async def demo_flow(anchor: str):
         return json.load(f)
 
 
+from api.scoreboard import router as scoreboard_router
+app.include_router(scoreboard_router)
+
+# ── Track C: Thesis compiler, webhook receiver, manual trigger ────────────────
+
+import asyncio as _asyncio
+from api.webhooks import router as webhooks_router
+import api.webhooks as _webhooks_mod
+from models.schemas import NormalisedEvent, EventType, EventSubject, EventSource
+from ingestion.client import CrustdataClient
+
+# Shared event queue (created once at import time)
+_event_queue: _asyncio.Queue = _asyncio.Queue()
+
+# Wire the webhook module to the same queue
+_webhooks_mod.set_queue(_event_queue)
+
+app.include_router(webhooks_router)
+
+
+class ThesisCompileRequest(BaseModel):
+    description: str
+    crustdata_key: Optional[str] = None
+    anthropic_key: Optional[str] = None
+
+
+@app.post("/thesis/compile")
+async def thesis_compile(req: ThesisCompileRequest):
+    if not req.description or not req.description.strip():
+        raise HTTPException(status_code=400, detail="description is required and must not be empty")
+
+    from pipeline.compiler import compile_thesis
+    from tests.mock_client import MockCrustdataClient
+
+    # Use live client if key provided, else mock for grounding (autocomplete is free)
+    if req.crustdata_key:
+        client = CrustdataClient(api_key=req.crustdata_key)
+    else:
+        client = MockCrustdataClient()
+    try:
+        thesis, explanation = await compile_thesis(
+            req.description, client, anthropic_key=req.anthropic_key
+        )
+        import dataclasses
+        return {"thesis": dataclasses.asdict(thesis), "explanation": explanation}
+    finally:
+        await client.close()
+
+
+@app.post("/thesis/confirm")
+async def thesis_confirm(thesis_data: dict):
+    """Persist a confirmed thesis (in-memory for session; extend to DB as needed)."""
+    return {"status": "confirmed", "thesis_id": thesis_data.get("thesis_id")}
+
+
+class TriggerManualRequest(BaseModel):
+    thesis_id: str
+
+
+@app.post("/trigger/manual")
+async def trigger_manual(req: TriggerManualRequest):
+    """Manually enqueue a synthetic NormalisedEvent. Frontend sends only thesis_id."""
+    import uuid
+    from datetime import datetime, timezone
+
+    event = NormalisedEvent(
+        event_id    = str(uuid.uuid4()),
+        event_type  = EventType.person_stealth_flip,
+        thesis_id   = req.thesis_id,
+        subject     = EventSubject(type="system", name="manual-trigger"),
+        payload     = {"trigger": "manual"},
+        detected_at = datetime.now(timezone.utc),
+        source      = EventSource.poll,
+    )
+    _event_queue.put_nowait(event)
+    return {"status": "queued", "event_id": event.event_id}
+
+
+# Runtime polling toggle (in-memory; resets on server restart).
+# Initialised from ENABLE_POLLING env var so the env var still works as default.
+_polling_enabled: bool = os.environ.get("ENABLE_POLLING", "false").lower() == "true"
+
+
+@app.get("/status")
+async def status():
+    """Return polling status for UI indicator."""
+    return {"polling_enabled": _polling_enabled, "scheduler_registered": True}
+
+
+@app.post("/status/toggle-polling")
+async def toggle_polling():
+    """Flip the runtime polling flag. Resets on server restart."""
+    global _polling_enabled
+    _polling_enabled = not _polling_enabled
+    return {"polling_enabled": _polling_enabled}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

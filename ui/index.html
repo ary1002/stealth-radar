@@ -682,7 +682,7 @@
     // ── Header ───────────────────────────────────────────────────────────────
 
     function Header({ tab, setTab }) {
-      const tabs = ["Radar", "TalentFlow", "Validation"];
+      const tabs = ["Radar", "Thesis", "Scoreboard", "Validation", "TalentFlow"];
       return (
         <header className="header">
           <div style={{display:"flex",flexDirection:"column",gap:2}}>
@@ -1088,7 +1088,7 @@
 
     // ── RadarTab ─────────────────────────────────────────────────────────────
 
-    function RadarTab({ keys, liveMode }) {
+    function RadarTab({ keys, liveMode, activeThesis }) {
       const [anchor, setAnchor] = useState("OpenAI");
       const [running, setRunning] = useState(false);
       const [events, setEvents] = useState([]);
@@ -1207,6 +1207,44 @@
               {!liveMode && <span style={{color:"var(--amber)",marginLeft:6}}>Demo mode — add API keys in the sidebar for a live run.</span>}
             </p>
           </div>
+          {/* Thesis indicator */}
+          {activeThesis ? (
+            <div style={{
+              display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",
+              marginBottom:14,padding:"8px 12px",
+              background:"rgba(99,102,241,.07)",border:"1px solid rgba(99,102,241,.25)",
+              borderRadius:5,fontSize:12,
+            }}>
+              <span style={{color:"var(--green)",fontSize:13,flexShrink:0}}>◉</span>
+              <span style={{color:"var(--text2)",fontWeight:500}}>Thesis active:</span>
+              <span style={{color:"var(--text)",fontFamily:"var(--mono)",fontSize:11}}>
+                {activeThesis.thesis_id}
+              </span>
+              <span style={{color:"var(--text3)"}}>—</span>
+              <span style={{color:"var(--text3)",fontSize:11,flexShrink:1,minWidth:0}}>
+                {activeThesis.label}
+              </span>
+              <span style={{marginLeft:"auto",fontSize:10,color:"var(--text3)",flexShrink:0}}>
+                filters + weights applied
+              </span>
+            </div>
+          ) : (
+            <div style={{
+              display:"flex",alignItems:"center",gap:8,marginBottom:14,
+              padding:"7px 12px",background:"var(--surface)",
+              border:"1px solid var(--border)",borderRadius:5,fontSize:11,color:"var(--text3)",
+            }}>
+              <span style={{fontSize:12}}>○</span>
+              No thesis active — running with default weights.
+              <span style={{
+                marginLeft:4,color:"var(--accent)",cursor:"pointer",textDecoration:"underline",
+              }}
+                onClick={()=>{ /* handled by parent tab switching */ }}>
+                Compile one in the Thesis tab
+              </span>
+            </div>
+          )}
+
           <div className="input-row">
             <input
               className="anchor-input"
@@ -1543,6 +1581,526 @@
       },
     ];
 
+    // ── ThesisTab ─────────────────────────────────────────────────────────────
+
+    const DEMO_THESIS = {
+      thesis_id: "preseed_ai_agents_data_infra_faang",
+      label: "Pre-seed Founding Teams: AI Agents & Data Infra, ex-FAANG/Top Startup Alumni, US-Based",
+      anchor_strategy: {
+        mode: "explicit",
+        companies: [
+          {name:"Google",company_id:4926893},{name:"Meta",company_id:6033736},
+          {name:"Amazon",company_id:6034577},{name:"Apple",company_id:680979},
+          {name:"Microsoft",company_id:2110301},{name:"Netflix",company_id:6052055},
+          {name:"Stripe",company_id:631394},{name:"Notion",company_id:3552555},
+          {name:"Figma",company_id:631408}
+        ]
+      },
+      company_gate: { max_headcount: 500, countries: ["USA"] },
+      scoring_weights: {
+        size_score:0.18, shared_destination:0.22, destination_tiny:0.12,
+        stealth_founder_ratio:0.16, window_tightness:0.12, co_tenure:0.14, open_to:0.06
+      },
+      max_investigation_credits: 10.0,
+      poll_cadence_hours: 24,
+    };
+    const DEMO_EXPLANATION = "Grounding complete. Resolved 9 anchor companies to Crustdata company_ids. Location values snapped to Crustdata canonical country names. Scoring weights validated (sum = 1.0).";
+
+    function ThesisTab({ keys, liveMode, onActivate }) {
+      const [description, setDescription]     = useState("");
+      const [compiling, setCompiling]         = useState(false);
+      const [thesis, setThesis]               = useState(DEMO_THESIS);
+      const [explanation, setExplanation]     = useState(DEMO_EXPLANATION);
+      const [isDemo, setIsDemo]               = useState(true);
+      const [confirmed, setConfirmed]         = useState(false);
+      const [triggering, setTriggering]       = useState(false);
+      const [triggerStatus, setTriggerStatus] = useState(null);
+      const [pollingStatus, setPollingStatus] = useState(null);
+      const [error, setError]                 = useState(null);
+
+      useEffect(() => {
+        fetch("/status").then(r => r.ok ? r.json() : null)
+          .then(d => { if (d) setPollingStatus(d); })
+          .catch(() => {});
+      }, []);
+
+      const handleTogglePolling = async () => {
+        try {
+          const res = await fetch("/status/toggle-polling", { method: "POST" });
+          const d = await res.json();
+          setPollingStatus(prev => ({ ...prev, polling_enabled: d.polling_enabled }));
+        } catch(e) { /* ignore */ }
+      };
+
+      const handleCompile = async () => {
+        if (!description.trim()) return;
+        setCompiling(true); setError(null);
+        try {
+          const res = await fetch("/thesis/compile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              description,
+              crustdata_key: keys.crustdata || null,
+              anthropic_key: keys.anthropic || null,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || JSON.stringify(data));
+          setThesis(data.thesis);
+          setExplanation(data.explanation);
+          setIsDemo(false); setConfirmed(false); setTriggerStatus(null);
+        } catch(e) { setError(String(e)); }
+        finally { setCompiling(false); }
+      };
+
+      const handleConfirm = async () => {
+        try {
+          await fetch("/thesis/confirm", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(thesis),
+          });
+          setConfirmed(true);
+          if (onActivate) onActivate(thesis);   // lift active thesis to App
+        } catch(e) { setError(String(e)); }
+      };
+
+      const handleTrigger = async () => {
+        setTriggering(true); setTriggerStatus(null);
+        try {
+          const res = await fetch("/trigger/manual", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ thesis_id: thesis.thesis_id }),
+          });
+          const data = await res.json();
+          setTriggerStatus(data.status === "queued" ? "queued" : "error");
+        } catch(e) { setTriggerStatus("error"); }
+        finally { setTriggering(false); }
+      };
+
+      const pollingOn = pollingStatus?.polling_enabled;
+      const swt = thesis?.scoring_weights || {};
+      const swtEntries = Object.entries(swt).sort((a,b) => b[1]-a[1]);
+      const anchors = thesis?.anchor_strategy?.companies || [];
+
+      return (
+        <div className="tab-content">
+          {/* subtitle + polling pill */}
+          <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:20,gap:16}}>
+            <p style={{fontSize:12,color:"var(--text3)",lineHeight:1.6,maxWidth:580}}>
+              Compile a plain-English VC thesis into a grounded Crustdata investigation config.
+              Claude + autocomplete snaps location, industry, and operator values to Crustdata canonical forms.
+              {!liveMode && <span style={{color:"var(--amber)",marginLeft:6}}>Enter API keys in the sidebar to compile a live thesis.</span>}
+            </p>
+            <div style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
+              <button
+                onClick={handleTogglePolling}
+                title={pollingOn ? "Click to disable automatic polling" : "Click to enable automatic polling"}
+                style={{
+                  fontSize:10,fontWeight:700,letterSpacing:".06em",
+                  padding:"4px 10px",borderRadius:3,cursor:"pointer",
+                  background: pollingOn ? "var(--green-dim)" : "var(--amber-dim)",
+                  color: pollingOn ? "var(--green)" : "var(--amber)",
+                  border: `1px solid ${pollingOn ? "var(--green)" : "var(--amber)"}`,
+                  transition:"all .2s",
+                }}>
+                {pollingOn ? "● Polling: ON  ×" : "○ Polling: OFF  ↺"}
+              </button>
+              <span style={{fontSize:10,color:"var(--text3)",textAlign:"right",maxWidth:220}}>
+                {pollingOn
+                  ? "Automatic polling active — running every 24h."
+                  : "Use Trigger Manual Run below, or toggle ON for automation."}
+              </span>
+            </div>
+          </div>
+
+          {/* description input */}
+          <textarea
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            placeholder='e.g. "Pre-seed technical cofounders building AI infrastructure, ex-FAANG, US-based"'
+            disabled={!liveMode}
+            style={{
+              width:"100%",minHeight:80,background:"var(--surface)",border:"1px solid var(--border)",
+              borderRadius:6,padding:"10px 14px",fontFamily:"var(--sans)",fontSize:13,
+              color:"var(--text)",resize:"vertical",outline:"none",marginBottom:10,
+              opacity: liveMode ? 1 : 0.5,
+            }}
+          />
+          <button className="run-btn" onClick={handleCompile} disabled={compiling||!liveMode||!description.trim()}
+            style={{marginBottom:24}}>
+            {compiling ? <><span className="spinner"/>Compiling…</> : "Compile Thesis →"}
+          </button>
+
+          {error && <div className="error-panel" style={{marginBottom:16}}>ERROR: {error}</div>}
+
+          {/* compiled thesis display */}
+          {thesis && (
+            <div>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+                <span style={{fontSize:11,fontWeight:700,letterSpacing:".08em",color:"var(--text3)",textTransform:"uppercase"}}>Compiled Thesis</span>
+                {isDemo && (
+                  <span style={{fontSize:9,fontWeight:700,letterSpacing:".06em",padding:"1px 6px",borderRadius:3,
+                    background:"var(--border)",color:"var(--text3)",border:"1px solid var(--border2)"}}>
+                    DEMO THESIS
+                  </span>
+                )}
+                {isDemo && <span style={{fontSize:11,color:"var(--text3)"}}>— Demo thesis — compile your own with API keys.</span>}
+              </div>
+
+              {/* label + id */}
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:15,fontWeight:600,color:"var(--text)",marginBottom:3}}>{thesis.label}</div>
+                <div style={{fontFamily:"var(--mono)",fontSize:11,color:"var(--text3)"}}>{thesis.thesis_id}</div>
+              </div>
+
+              {/* anchors */}
+              <div style={{marginBottom:14}}>
+                <div className="section-label" style={{marginBottom:6}}>Anchor Companies</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                  {anchors.map((a,i) => (
+                    <span key={i} style={{fontSize:11,fontWeight:600,padding:"2px 8px",borderRadius:3,
+                      background:"var(--accent-dim)",color:"var(--accent-h)",border:"1px solid rgba(99,102,241,.3)"}}>
+                      {typeof a === "string" ? a : a.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* person filters */}
+              {thesis.person_filters && Object.keys(thesis.person_filters).length > 0 && (
+                <div style={{marginBottom:14}}>
+                  <div className="section-label" style={{marginBottom:6}}>Person Filters</div>
+                  <pre style={{background:"var(--surface2)",border:"1px solid var(--border)",borderRadius:4,
+                    padding:"10px 12px",fontFamily:"var(--mono)",fontSize:11,color:"var(--text2)",
+                    maxHeight:200,overflowY:"auto",whiteSpace:"pre-wrap",wordBreak:"break-all"}}>
+                    {JSON.stringify(thesis.person_filters, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              {/* scoring weights bars */}
+              <div style={{marginBottom:14}}>
+                <div className="section-label" style={{marginBottom:8}}>Scoring Weights</div>
+                {swtEntries.map(([k,v]) => (
+                  <div key={k} style={{display:"flex",alignItems:"center",gap:10,marginBottom:5}}>
+                    <span style={{fontFamily:"var(--mono)",fontSize:10,color:"var(--text3)",width:160,flexShrink:0}}>{k}</span>
+                    <div style={{flex:1,background:"var(--border)",borderRadius:2,height:4,overflow:"hidden"}}>
+                      <div style={{width:`${(v/0.25)*100}%`,height:"100%",background:"var(--accent)",borderRadius:2,maxWidth:"100%"}}/>
+                    </div>
+                    <span style={{fontFamily:"var(--mono)",fontSize:10,color:"var(--text2)",width:32,textAlign:"right"}}>{v}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* company gate */}
+              <div style={{marginBottom:14,fontSize:12,color:"var(--text3)"}}>
+                <span style={{color:"var(--text2)"}}>Headcount gate:</span> &lt;{thesis.company_gate?.max_headcount ?? 500} employees
+                {thesis.company_gate?.countries?.length > 0 && (
+                  <span> · Countries: {thesis.company_gate.countries.join(", ")}</span>
+                )}
+                <span style={{marginLeft:12,color:"var(--text2)"}}>Investigation budget:</span> ${thesis.max_investigation_credits} cr
+              </div>
+
+              {/* grounding notes */}
+              {explanation && (
+                <div style={{borderLeft:"3px solid var(--border2)",paddingLeft:12,marginBottom:20,
+                  fontSize:12,color:"var(--text3)",lineHeight:1.6}}>
+                  {explanation}
+                </div>
+              )}
+
+              {/* confirm */}
+              {!confirmed ? (
+                <button className="run-btn" onClick={handleConfirm}
+                  style={{background:"transparent",border:"1px solid var(--accent)",color:"var(--accent-h)",marginBottom:12}}>
+                  Confirm &amp; Activate →
+                </button>
+              ) : (
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+                  <span style={{color:"var(--green)",fontSize:16}}>✓</span>
+                  <span style={{fontSize:13,color:"var(--green)",fontWeight:600}}>Thesis active</span>
+                </div>
+              )}
+
+              {/* manual trigger (only after confirm) */}
+              {confirmed && (
+                <div>
+                  <button className="run-btn" onClick={handleTrigger} disabled={triggering}
+                    style={{background:"var(--amber)",marginBottom:10}}>
+                    {triggering ? <><span className="spinner"/>Triggering…</> : "Trigger Manual Run →"}
+                  </button>
+                  {triggerStatus === "queued" && (
+                    <div style={{padding:"10px 14px",background:"var(--amber-dim)",border:"1px solid var(--amber)",
+                      borderRadius:5,fontSize:12,color:"var(--amber)"}}>
+                      Queued — open the Radar tab and run with this thesis anchor to see live results.
+                    </div>
+                  )}
+                  {triggerStatus === "error" && (
+                    <div className="error-panel">Failed to queue event — check server logs.</div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ── ScoreboardTab ─────────────────────────────────────────────────────────
+
+    function isBacktestCard(row) {
+      return row.source === "backtest" ||
+        ["pred_characterai_001","pred_sierraai_001","pred_sakanaai_001"].includes(row.prediction_id);
+    }
+
+    function PredictionCard({ row }) {
+      const isBacktest = isBacktestCard(row);
+      const status     = row.status || "open";
+      const borderColor = status === "confirmed" ? "var(--green)" : status === "expired" ? "var(--border2)" : "var(--accent)";
+      const adjClass   = {
+        forming_team:"adj-forming", layoff_dispersion:"adj-layoff",
+        coincidental:"adj-coincidental", unclear:"adj-unclear"
+      }[row.claude_verdict] || "adj-unclear";
+
+      const gitHash = row.git_commit_hash || row.row_hash;
+      const shortHash = gitHash ? gitHash.slice(0,7) : null;
+      const dateStr = row.created_at ? row.created_at.slice(0,10) : "—";
+
+      const evidence = row.evidence_summary || [];
+
+      return (
+        <div className="cluster-card" style={{borderLeft:`3px solid ${borderColor}`,marginBottom:10,opacity:status==="expired"?.6:1}}>
+          <div style={{padding:"12px 16px"}}>
+            {/* header row */}
+            <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:6}}>
+              <span className={`tier-badge tier-${(row.tier||"watch").toLowerCase()}`} style={{fontSize:10,fontWeight:700,
+                letterSpacing:".07em",padding:"2px 7px",borderRadius:3,textTransform:"uppercase"}}>
+                {row.tier || "—"}
+              </span>
+              <span style={{fontFamily:"var(--mono)",fontSize:13,fontWeight:600,color:"var(--text)"}}>
+                {(parseFloat(row.score)||0).toFixed(1)}
+              </span>
+              <span style={{fontSize:12,color:"var(--text2)"}}>
+                {row.anchor_company || "—"} → {row.destination_name || "(stealth)"}
+              </span>
+              <span style={{marginLeft:"auto",fontSize:11,fontWeight:600,
+                color: status==="confirmed" ? "var(--green)" : status==="expired" ? "var(--text3)" : "var(--amber)"}}>
+                {status==="confirmed" ? "✓ confirmed" : status==="expired" ? "✗ expired" : "◷ open"}
+              </span>
+            </div>
+
+            {/* second row — verdict + lead time or id */}
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6,flexWrap:"wrap"}}>
+              <span className={adjClass} style={{fontSize:11,fontWeight:600}}>
+                {row.claude_verdict || "—"}
+              </span>
+              {status==="confirmed" && row.lead_time_days && (
+                <span style={{fontSize:11,color:"var(--text3)"}}>· {Math.round(row.lead_time_days/30)} months early</span>
+              )}
+              {status!=="confirmed" && (
+                <span style={{fontFamily:"var(--mono)",fontSize:10,color:"var(--text3)"}}>{row.prediction_id}</span>
+              )}
+            </div>
+
+            {/* git hash — on ALL cards */}
+            {shortHash && (
+              <div style={{marginBottom:8,fontSize:11,display:"flex",gap:8,alignItems:"center"}}>
+                <span style={{color:"var(--text3)"}}>git:</span>
+                <span style={{fontFamily:"var(--mono)",color:"var(--text2)"}}>{shortHash}</span>
+                <span style={{color:"var(--text3)"}}>· {dateStr}</span>
+              </div>
+            )}
+
+            {/* evidence preview */}
+            {evidence.slice(0,2).map((ev,i) => {
+              const s = ev.supports ?? 0;
+              const col = s > 0 ? "var(--green)" : s < 0 ? "var(--red)" : "var(--text3)";
+              const sign = s > 0 ? "+" : s < 0 ? "−" : " ";
+              const finding = (ev.finding||"").slice(0,60) + ((ev.finding||"").length>60?"…":"");
+              return (
+                <div key={i} className="log-line" style={{fontSize:11,padding:"1px 0",borderBottom:"1px solid var(--border)"}}>
+                  <span style={{fontFamily:"var(--mono)",color:col,marginRight:6}}>
+                    [{sign}{Math.abs(s).toFixed(1)}]
+                  </span>
+                  <span style={{color:"var(--text3)",marginRight:4}}>{ev.source}:</span>
+                  <span style={{color:"var(--text2)"}}>{finding}</span>
+                </div>
+              );
+            })}
+
+            {/* reasoning block — open cards only */}
+            {status === "open" && (() => {
+              const dest    = row.destination_name || "";
+              const destId  = row.destination_company_id;
+              const verdict = row.claude_verdict || "";
+              const members = Array.isArray(row.members) ? row.members : [];
+              const nMembers = members.length;
+
+              // detect split destinations
+              const currentCos = [...new Set(members.map(m => m.current_company).filter(Boolean))];
+              const splitDest  = currentCos.length > 1;
+
+              // detect "0 job postings" in evidence
+              const zeroJobs = evidence.some(ev =>
+                ev.source === "job_search" && (ev.finding||"").includes("0 job"));
+
+              // build reasoning paragraph
+              const parts = [];
+              if (!destId || destId === 0) {
+                parts.push(`Destination unresolved — watching for ${dest||"destination"} to surface in Crustdata index or announce publicly.`);
+              } else if (verdict === "forming_team") {
+                parts.push(`Confirmed destination. Watching for funding announcement or public launch from ${dest} (company_id=${destId}).`);
+              }
+              if (verdict === "unclear") {
+                parts.push(`Signal present but incomplete — ${nMembers} member${nMembers!==1?"s":""}, destination convergence partial. Confirm whether members are actively co-founding or co-joining.`);
+              }
+              if (zeroJobs) {
+                parts.push("No job postings yet — first hire will be a strong confirmation signal.");
+              }
+              if (splitDest) {
+                parts.push(`Members at different destinations (${currentCos.slice(0,3).join(", ")}) — co-departure confirmed, co-founding unconfirmed.`);
+              }
+
+              if (parts.length === 0) return null;
+              const para = parts.join(" ");
+
+              // watching-for line
+              const watchItems = [];
+              if (!destId || destId === 0) watchItems.push(`Crustdata index entry for ${dest||"destination"}`);
+              if (verdict === "forming_team" || verdict === "unclear") watchItems.push("funding announcement, job postings, domain registration");
+              if (splitDest) watchItems.push("LinkedIn update showing shared company");
+              watchItems.push(`git-committed confirmation at ${row.prediction_id}`);
+              const watching = watchItems.join(" · ");
+
+              return <ReasoningBlock para={para} watching={watching} />;
+            })()}
+          </div>
+        </div>
+      );
+    }
+
+    function ReasoningBlock({ para, watching }) {
+      return (
+        <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid var(--border)"}}>
+          <p style={{
+            borderLeft:"2px solid var(--border2)",
+            paddingLeft:10,
+            fontSize:11,
+            color:"var(--text3)",
+            lineHeight:1.6,
+            margin:0,
+            marginBottom:6,
+          }}>{para}</p>
+          <p style={{fontSize:10,color:"var(--text3)",margin:0,opacity:.75}}>
+            <span style={{fontWeight:600,color:"var(--text3)"}}>Watching for: </span>
+            {watching}
+          </p>
+        </div>
+      );
+    }
+
+    function ScoreboardTab() {
+      const [metrics, setMetrics] = useState(null);
+      const [feed, setFeed]       = useState([]);
+      const [open, setOpen]       = useState([]);
+      const [loading, setLoading] = useState(false);
+      const [error, setError]     = useState(null);
+
+      const fetchAll = useCallback(async () => {
+        setLoading(true); setError(null);
+        try {
+          const [m, f, o] = await Promise.all([
+            fetch("/scoreboard/metrics").then(r=>r.json()),
+            fetch("/scoreboard/feed").then(r=>r.json()),
+            fetch("/scoreboard/open").then(r=>r.json()),
+          ]);
+          setMetrics(m);
+          setFeed(Array.isArray(f) ? f : []);
+          setOpen(Array.isArray(o) ? o : []);
+        } catch(e) { setError(String(e)); }
+        finally { setLoading(false); }
+      }, []);
+
+      useEffect(() => { fetchAll(); }, []);
+
+      const TIER_COLORS = {High:"var(--accent)",Medium:"rgba(99,102,241,.4)",Low:"var(--text3)",Watch:"var(--border2)"};
+
+      return (
+        <div className="tab-content">
+          <div style={{marginBottom:20}}>
+            <p style={{fontSize:12,color:"var(--text3)",lineHeight:1.6,maxWidth:640}}>
+              Tamper-evident prediction ledger. Each prediction is SHA-256 hash-chained and git-committed at detection time —
+              before any confirmation. Hit rate is confirmed vs. (confirmed + expired).
+            </p>
+          </div>
+
+          {error && <div className="error-panel" style={{marginBottom:16}}>{error}</div>}
+
+          {/* metrics */}
+          {metrics && (
+            <div className="cluster-card" style={{marginBottom:24,padding:"16px"}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+                <span className="section-label">Metrics</span>
+                <button onClick={fetchAll} disabled={loading}
+                  style={{background:"none",border:"1px solid var(--border)",borderRadius:4,color:"var(--text3)",
+                    cursor:"pointer",padding:"3px 10px",fontSize:12}}>
+                  {loading ? "…" : "↺ Refresh"}
+                </button>
+              </div>
+              {/* hit rate bar */}
+              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
+                <span style={{fontSize:12,color:"var(--text2)",width:70}}>Hit rate</span>
+                <div style={{flex:1,background:"var(--border)",borderRadius:2,height:4}}>
+                  <div className="conf-bar" style={{width:`${((parseFloat(metrics.hit_rate)||0)*100).toFixed(1)}%`}}/>
+                </div>
+                <span style={{fontFamily:"var(--mono)",fontSize:12,color:"var(--text)",width:40,textAlign:"right"}}>
+                  {((parseFloat(metrics.hit_rate)||0)*100).toFixed(1)}%
+                </span>
+              </div>
+              {/* totals */}
+              <div style={{fontSize:11,color:"var(--text3)",marginBottom:12}}>
+                ○ Open: {metrics.total_open}&nbsp;&nbsp;
+                ✓ Confirmed: {metrics.total_confirmed}&nbsp;&nbsp;
+                ✗ Expired: {metrics.total_expired}
+              </div>
+              {/* tier dots */}
+              <div style={{display:"flex",gap:16}}>
+                {Object.entries(metrics.tier_breakdown||{}).map(([t,n]) => (
+                  <div key={t} style={{display:"flex",alignItems:"center",gap:5,fontSize:11,color:"var(--text3)"}}>
+                    <span style={{width:8,height:8,borderRadius:"50%",background:TIER_COLORS[t]||"var(--border2)",display:"inline-block"}}/>
+                    {t}: {n}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* confirmed */}
+          <div style={{marginBottom:20}}>
+            <div className="section-label" style={{marginBottom:10}}>Confirmed Predictions</div>
+            {feed.length === 0 ? (
+              <div className="empty-state" style={{padding:"24px 0"}}>
+                <div style={{color:"var(--text3)",fontSize:12}}>No confirmed predictions yet — open predictions will be confirmed or expired as companies announce.</div>
+              </div>
+            ) : feed.map((row,i) => <PredictionCard key={row.prediction_id||i} row={{...row,status:"confirmed"}} />)}
+          </div>
+
+          {/* open */}
+          <div>
+            <div className="section-label" style={{marginBottom:10}}>Open Predictions</div>
+            {open.length === 0 ? (
+              <div className="empty-state" style={{padding:"24px 0"}}>
+                <div style={{color:"var(--text3)",fontSize:12}}>No open predictions — run the Radar tab with valid API keys to generate predictions.</div>
+              </div>
+            ) : open.map((row,i) => <PredictionCard key={row.prediction_id||i} row={{...row,status:"open"}} />)}
+          </div>
+        </div>
+      );
+    }
+
     function ValidationTab() {
       return (
         <div className="tab-content">
@@ -1591,6 +2149,8 @@
       const [keys, setKeys] = useState({ crustdata: "", anthropic: "" });
       const [validationStatus, setValidationStatus] = useState({});
       const [validating, setValidating] = useState(false);
+      // activeThesis: set when user confirms a thesis in ThesisTab; shared with RadarTab
+      const [activeThesis, setActiveThesis] = useState(null);
 
       const liveMode = validationStatus.crustdata === "valid"
                     && validationStatus.anthropic === "valid";
@@ -1627,9 +2187,11 @@
               validating={validating}
             />
             <div style={{ flex:1, overflow:"hidden" }}>
-              {tab === "Radar"      && <RadarTab keys={keys} liveMode={liveMode} />}
-              {tab === "TalentFlow" && <TalentFlowTab keys={keys} liveMode={liveMode} />}
+              {tab === "Radar"      && <RadarTab keys={keys} liveMode={liveMode} activeThesis={activeThesis} />}
+              {tab === "Thesis"     && <ThesisTab keys={keys} liveMode={liveMode} onActivate={setActiveThesis} />}
+              {tab === "Scoreboard" && <ScoreboardTab />}
               {tab === "Validation" && <ValidationTab />}
+              {tab === "TalentFlow" && <TalentFlowTab keys={keys} liveMode={liveMode} />}
             </div>
           </div>
         </div>
