@@ -53,6 +53,7 @@ class RadarStreamRequest(BaseModel):
     anchor_linkedin_url: Optional[str] = None
     crustdata_key: Optional[str] = None
     anthropic_key: Optional[str] = None
+    thesis_id: Optional[str] = None   # active confirmed thesis, if any
 
 
 class ValidateKeysRequest(BaseModel):
@@ -147,11 +148,68 @@ async def radar_stream_post(req: RadarStreamRequest):
         finally:
             await queue.put({"type": "done"})
 
+    async def _maybe_insert(event: dict) -> None:
+        """Non-blocking ledger write for forming_team High/Medium clusters."""
+        try:
+            from db.ledger import init_predictions_db, insert_prediction
+            from models.schemas import EvidenceBundle
+            import types
+
+            adj = event.get("adjudication") or {}
+            t   = event.get("tier", "")
+            if not (adj.get("label") == "forming_team" and t in ("High", "Medium")):
+                return
+
+            members = event.get("members") or []
+            cos = [m.get("current_company") for m in members if m.get("current_company")]
+            dest_name = max(set(cos), key=cos.count) if cos else None
+
+            cluster_for_ledger = {
+                "anchor":                   req.anchor or req.anchor_linkedin_url or "",
+                "score":                    event.get("score", 0),
+                "tier":                     t,
+                "destination_name":         dest_name,
+                "destination_company_id":   None,
+                "members": [
+                    {
+                        "name":            m.get("name"),
+                        "profile_url":     m.get("profile_url"),
+                        "headline":        m.get("headline"),
+                        "current_title":   m.get("current_title"),
+                        "current_company": m.get("current_company"),
+                        "anchor_tenure":   m.get("anchor_tenure_months") or m.get("anchor_tenure"),
+                    }
+                    for m in members
+                ],
+            }
+
+            thesis_stub = types.SimpleNamespace(
+                thesis_id=req.thesis_id or f"radar:{req.anchor or req.anchor_linkedin_url or 'unknown'}"
+            )
+
+            conn = init_predictions_db()
+            try:
+                insert_prediction(
+                    conn=conn,
+                    cluster=cluster_for_ledger,
+                    evidence_bundle=EvidenceBundle(),
+                    verdict=adj.get("label", "forming_team"),
+                    tier=t,
+                    thesis=thesis_stub,
+                )
+            finally:
+                conn.close()
+        except Exception as ledger_err:
+            import logging
+            logging.getLogger(__name__).warning("ledger insert skipped: %s", ledger_err)
+
     async def event_stream():
         asyncio.create_task(run_pipeline())
         while True:
             event = await queue.get()
             yield {"data": json.dumps(event)}
+            if event.get("type") == "cluster":
+                asyncio.create_task(_maybe_insert(event))
             if event.get("type") in ("done", "error"):
                 break
 

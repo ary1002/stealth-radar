@@ -1152,6 +1152,7 @@
                 anchor_linkedin_url: isUrl ? anchor : null,
                 crustdata_key: keys.crustdata || null,
                 anthropic_key: keys.anthropic || null,
+                thesis_id: activeThesis?.thesis_id || null,
               }),
             });
             const reader = res.body.getReader();
@@ -1937,42 +1938,72 @@
               const destId  = row.destination_company_id;
               const verdict = row.claude_verdict || "";
               const members = Array.isArray(row.members) ? row.members : [];
-              const nMembers = members.length;
 
-              // detect split destinations
-              const currentCos = [...new Set(members.map(m => m.current_company).filter(Boolean))];
-              const splitDest  = currentCos.length > 1;
+              // group members by current_company
+              const byDest = {};
+              members.forEach(m => {
+                const co = m.current_company || "unknown";
+                (byDest[co] = byDest[co] || []).push(m);
+              });
+              const destNames = Object.keys(byDest);
+              const splitDest = destNames.length > 1;
 
               // detect "0 job postings" in evidence
               const zeroJobs = evidence.some(ev =>
                 ev.source === "job_search" && (ev.finding||"").includes("0 job"));
 
-              // build reasoning paragraph
-              const parts = [];
+              // build member sentences
+              const memberLines = [];
+              if (splitDest) {
+                // one sentence per destination group
+                destNames.forEach(co => {
+                  const grp = byDest[co];
+                  const names = grp.map(m => {
+                    const t = m.anchor_tenure ? ` (${Math.round(m.anchor_tenure)}mo at anchor)` : "";
+                    return `${m.name || "unknown"}${t}`;
+                  }).join(" and ");
+                  const titles = [...new Set(grp.map(m => m.current_title).filter(Boolean))].join("/");
+                  memberLines.push(`${names} — ${titles || "role unknown"} at ${co}.`);
+                });
+              } else {
+                // converging — one combined sentence
+                const names = members.map(m => {
+                  const t = m.anchor_tenure ? ` (${Math.round(m.anchor_tenure)}mo)` : "";
+                  return `${m.name || "unknown"}${t}`;
+                }).join(" and ");
+                const titles = [...new Set(members.map(m => m.current_title).filter(Boolean))].join("/");
+                const co = destNames[0] || dest;
+                memberLines.push(`${names} — both ${titles || "unknown role"} at ${co}.`);
+              }
+
+              // context sentence
+              const parts = [...memberLines];
               if (!destId || destId === 0) {
-                parts.push(`Destination unresolved — watching for ${dest||"destination"} to surface in Crustdata index or announce publicly.`);
+                parts.push(`${dest || "Destination"} not yet indexed — watching for company page or announcement.`);
               } else if (verdict === "forming_team") {
-                parts.push(`Confirmed destination. Watching for funding announcement or public launch from ${dest} (company_id=${destId}).`);
+                parts.push(`Destination confirmed (company_id ${destId}). Watching for funding or public launch.`);
               }
               if (verdict === "unclear") {
-                parts.push(`Signal present but incomplete — ${nMembers} member${nMembers!==1?"s":""}, destination convergence partial. Confirm whether members are actively co-founding or co-joining.`);
+                parts.push("Convergence partial — confirm whether both are actively co-founding the same entity.");
+              }
+              if (splitDest) {
+                parts.push("Co-departure from anchor confirmed; co-founding at the same company unconfirmed.");
               }
               if (zeroJobs) {
                 parts.push("No job postings yet — first hire will be a strong confirmation signal.");
-              }
-              if (splitDest) {
-                parts.push(`Members at different destinations (${currentCos.slice(0,3).join(", ")}) — co-departure confirmed, co-founding unconfirmed.`);
               }
 
               if (parts.length === 0) return null;
               const para = parts.join(" ");
 
-              // watching-for line
+              // watching-for: name the specific people, not generic signal types
+              const watchPeople = members.map(m => m.name).filter(Boolean);
               const watchItems = [];
-              if (!destId || destId === 0) watchItems.push(`Crustdata index entry for ${dest||"destination"}`);
-              if (verdict === "forming_team" || verdict === "unclear") watchItems.push("funding announcement, job postings, domain registration");
-              if (splitDest) watchItems.push("LinkedIn update showing shared company");
-              watchItems.push(`git-committed confirmation at ${row.prediction_id}`);
+              if (watchPeople.length > 0) watchItems.push(`${watchPeople.join(", ")} LinkedIn updates`);
+              if (!destId || destId === 0) watchItems.push(`${dest || "destination"} Crustdata index entry`);
+              if (splitDest) watchItems.push("shared company name in member profiles");
+              watchItems.push(`first job posting at ${dest || "destination"}`);
+              watchItems.push(`git:${row.prediction_id}`);
               const watching = watchItems.join(" · ");
 
               return <ReasoningBlock para={para} watching={watching} />;
