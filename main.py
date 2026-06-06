@@ -2,6 +2,29 @@ import asyncio
 import time
 from ingestion.client import CrustdataClient
 
+VERDICT_MULTIPLIERS = {
+    "forming_team":      1.00,
+    "unclear":           0.75,
+    "coincidental":      0.50,
+    "layoff_dispersion": 0.50,
+}
+
+
+def _conviction_tier(conviction_score: float, verdict: str = "") -> str:
+    if conviction_score >= 60:
+        tier = "High"
+    elif conviction_score >= 40:
+        tier = "Medium"
+    elif conviction_score >= 20:
+        tier = "Low"
+    else:
+        tier = "Watch"
+    # Dismissed verdicts can never carry High or Medium — hard cap at Low
+    if verdict in ("coincidental", "layoff_dispersion") and tier in ("High", "Medium"):
+        tier = "Low"
+    return tier
+
+
 _FOUNDER_TERMS = {"founder", "co-founder", "cofounder", "founding"}
 
 
@@ -25,8 +48,8 @@ from detect.leavers import is_leaver, anchor_role
 from detect.signals import tag
 from detect.cluster import strong_clusters, medium_clusters, postprocess_clusters
 from score.model import cluster_features, score_clusters, tier
-from claude.adjudicate import adjudicate
-from claude.dossier import dossier
+from claude.adjudicate import adjudicate_and_dossier
+from detect.hypotheses import detect_hypotheses, should_skip_adjudication, route_cluster
 from config import DEMO_PAGE_LIMIT, STRONG_CLUSTER_MAX_HEADCOUNT
 
 
@@ -79,8 +102,8 @@ async def run(anchor_name=None, anchor_linkedin_url=None,
         dest_ids = {p.current_role.company_id for p in cluster if p.current_role and p.current_role.company_id}
         kind = "strong" if len(dest_ids) == 1 else "medium"
 
-        # Demotion: large-destination strong clusters cannot be High or forming_team.
-        # They are VISIBLE but capped so they don't masquerade as stealth signals.
+        # Display-score demotion: large-destination clusters capped at Medium tier.
+        # The label override (forming_team→coincidental) is now handled by hypothesis routing.
         if kind == "strong":
             dest_hcs = [p.current_role.headcount_latest
                         for p in cluster
@@ -89,11 +112,6 @@ async def run(anchor_name=None, anchor_linkedin_url=None,
                     and not _is_explicit_founding_team(cluster)):
                 if tier_label == "High":
                     tier_label = "Medium"
-                is_large_dest = True
-            else:
-                is_large_dest = False
-        else:
-            is_large_dest = False
 
         def _tenure_months(p):
             ar = anchor_role(p, anchor_name=anchor_name)
@@ -122,15 +140,33 @@ async def run(anchor_name=None, anchor_linkedin_url=None,
             "destination_convergence": feat["shared_destination"],
         }
 
-        adj = adjudicate(cluster_summary, anthropic_key=anthropic_key)
-        if is_large_dest and adj.get("label") == "forming_team":
-            adj = {**adj, "label": "coincidental",
-                   "rationale": f"[gated: large employer] {adj.get('rationale', '')}"}
-        dos = dossier(cluster_summary, anthropic_key=anthropic_key) if tier_label in ("High", "Medium") else None
+        # Hypothesis detection → routing → adjudication
+        hyps  = detect_hypotheses(cluster, anchor_name=anchor_name)
+        if should_skip_adjudication(hyps):
+            adj = {"label": "coincidental", "confidence": 0.8,
+                   "rationale": "Skipped adjudication — cross-country with no founding signal."}
+            dos = None
+        else:
+            route = route_cluster(hyps)
+            adj, dos = adjudicate_and_dossier(
+                cluster_summary,
+                hypotheses=hyps,
+                route=route,
+                anthropic_key=anthropic_key,
+            )
+            if tier_label not in ("High", "Medium") or route == "hostile":
+                dos = None
 
-        results.append((cluster, float(score), tier_label, feat, adj, dos))
+        # Conviction score: raw × verdict multiplier → recomputed tier
+        verdict_label    = adj.get("label", "coincidental")
+        multiplier       = VERDICT_MULTIPLIERS.get(verdict_label, 0.50)
+        conviction_score = round(float(score) * multiplier, 1)
+        tier_label       = _conviction_tier(conviction_score, verdict_label)
 
-    results.sort(key=lambda x: x[1], reverse=True)
+        results.append((cluster, float(score), tier_label, feat, adj, dos,
+                         conviction_score, multiplier))
+
+    results.sort(key=lambda x: x[6], reverse=True)  # sort by conviction_score
     return results
 
 
@@ -245,8 +281,8 @@ async def run_with_queue(anchor_name=None, anchor_linkedin_url=None, event_queue
         dest_ids = {p.current_role.company_id for p in cluster if p.current_role and p.current_role.company_id}
         kind = "strong" if len(dest_ids) == 1 else "medium"
 
-        # Demotion: large-destination strong clusters cannot be High or forming_team.
-        # They are VISIBLE but capped so they don't masquerade as stealth signals.
+        # Display-score demotion: large-destination clusters capped at Medium tier.
+        # The label override (forming_team→coincidental) is now handled by hypothesis routing.
         if kind == "strong":
             dest_hcs = [p.current_role.headcount_latest
                         for p in cluster
@@ -255,11 +291,6 @@ async def run_with_queue(anchor_name=None, anchor_linkedin_url=None, event_queue
                     and not _is_explicit_founding_team(cluster)):
                 if tier_label == "High":
                     tier_label = "Medium"
-                is_large_dest = True
-            else:
-                is_large_dest = False
-        else:
-            is_large_dest = False
 
         def _tenure_months(p, _anchor_name=anchor_name):
             ar = anchor_role(p, anchor_name=_anchor_name)
@@ -290,16 +321,34 @@ async def run_with_queue(anchor_name=None, anchor_linkedin_url=None, event_queue
             "destination_convergence": feat["shared_destination"],
         }
 
-        adj = adjudicate(cluster_summary, anthropic_key=anthropic_key)
-        if is_large_dest and adj.get("label") == "forming_team":
-            adj = {**adj, "label": "coincidental",
-                   "rationale": f"[gated: large employer] {adj.get('rationale', '')}"}
-        dos = dossier(cluster_summary, anthropic_key=anthropic_key) if tier_label in ("High", "Medium") else None
+        # Hypothesis detection → routing → adjudication
+        hyps  = detect_hypotheses(cluster, anchor_name=anchor_name)
+        if should_skip_adjudication(hyps):
+            adj = {"label": "coincidental", "confidence": 0.8,
+                   "rationale": "Skipped adjudication — cross-country with no founding signal."}
+            dos = None
+        else:
+            route = route_cluster(hyps)
+            adj, dos = adjudicate_and_dossier(
+                cluster_summary,
+                hypotheses=hyps,
+                route=route,
+                anthropic_key=anthropic_key,
+            )
+            if tier_label not in ("High", "Medium") or route == "hostile":
+                dos = None
+
+        # Conviction score: raw × verdict multiplier → recomputed tier
+        verdict_label    = adj.get("label", "coincidental")
+        multiplier       = VERDICT_MULTIPLIERS.get(verdict_label, 0.50)
+        conviction_score = round(float(score) * multiplier, 1)
+        tier_label       = _conviction_tier(conviction_score, verdict_label)
 
         adj_dict = adj if isinstance(adj, dict) else (adj.__dict__ if hasattr(adj, '__dict__') else {"raw": str(adj)})
         dos_dict = dos if isinstance(dos, dict) else (dos.__dict__ if dos and hasattr(dos, '__dict__') else dos)
 
-        results.append((cluster, float(score), tier_label, feat, adj, dos))
+        results.append((cluster, float(score), tier_label, feat, adj, dos,
+                         conviction_score, multiplier))
 
         # Emit cluster event as it is scored
         await emit({
@@ -307,6 +356,8 @@ async def run_with_queue(anchor_name=None, anchor_linkedin_url=None, event_queue
             "rank": idx + 1,
             "tier": tier_label,
             "score": float(score),
+            "conviction_score": conviction_score,
+            "verdict_multiplier": multiplier,
             "members": members_list,
             "adjudication": adj_dict,
             "dossier": dos_dict,
@@ -314,7 +365,7 @@ async def run_with_queue(anchor_name=None, anchor_linkedin_url=None, event_queue
 
     await emit({"type": "stage", "stage": "adjudication", "status": "done", "count": len(results)})
 
-    results.sort(key=lambda x: x[1], reverse=True)
+    results.sort(key=lambda x: x[6], reverse=True)  # sort by conviction_score
 
     await emit({"type": "done", "total_clusters": len(results)})
     return results

@@ -798,7 +798,7 @@
                         <span className="log-ts">{relTs(startMs.current)}</span>
                         <span className="log-stage">cluster #{e.rank} scored</span>
                         <span className="log-num">{e.tier}</span>
-                        <span className="log-meta">score={e.score?.toFixed(1)}</span>
+                        <span className="log-meta">conviction={(e.conviction_score != null ? e.conviction_score : (e.score||0) * (VERDICT_MULTIPLIERS[e.adjudication?.label] ?? 0.50)).toFixed(1)}</span>
                       </div>
                     );
                   }
@@ -916,7 +916,7 @@
           {thesis && (
             <div className="dossier-item" style={{gridColumn: "1 / -1"}}>
               <div className="dossier-item-label">THESIS</div>
-              <div className="dossier-item-value">{truncate(thesis, 220)}</div>
+              <div className="dossier-item-value">{thesis}</div>
             </div>
           )}
           {action && (
@@ -945,6 +945,22 @@
       );
     }
 
+    // ── Conviction score helpers ──────────────────────────────────────────────
+
+    const VERDICT_MULTIPLIERS = {
+      forming_team: 1.00, unclear: 0.75,
+      coincidental: 0.50, layoff_dispersion: 0.50,
+    };
+
+    /** Return conviction_score — compute from raw score + verdict if not present (e.g. cached demo). */
+    function getConviction(cluster) {
+      if (cluster.conviction_score != null) return cluster.conviction_score;
+      const raw    = cluster.score || 0;
+      const label  = cluster.adjudication?.label || "coincidental";
+      const mult   = VERDICT_MULTIPLIERS[label] ?? 0.50;
+      return Math.round(raw * mult * 10) / 10;
+    }
+
     // ── ClusterCard ──────────────────────────────────────────────────────────
 
     function ClusterCard({ cluster, rank }) {
@@ -955,7 +971,13 @@
         <div className="cluster-card">
           <div className="cluster-card-header">
             <TierBadge tier={cluster.tier} />
-            <span className="cluster-score">{cluster.score?.toFixed(1)}</span>
+            <span
+              className="cluster-score"
+              title={`Conviction = feature score × verdict confidence. Raw feature score: ${(cluster.score||0).toFixed(1)}`}
+              style={{cursor:"help"}}
+            >
+              {getConviction(cluster).toFixed(1)}
+            </span>
             <span className="cluster-meta">{members.length} member{members.length !== 1 ? "s" : ""} · #{rank}</span>
           </div>
 
@@ -1088,7 +1110,7 @@
 
     // ── RadarTab ─────────────────────────────────────────────────────────────
 
-    function RadarTab({ keys, liveMode, activeThesis }) {
+    function RadarTab({ keys, liveMode, activeThesis, setTab }) {
       const [anchor, setAnchor] = useState("OpenAI");
       const [running, setRunning] = useState(false);
       const [events, setEvents] = useState([]);
@@ -1107,7 +1129,7 @@
           setClusters(prev => {
             const idx = prev.findIndex(c => c.rank === data.rank);
             if (idx >= 0) { const n=[...prev]; n[idx]=data; return n; }
-            return [...prev, data].sort((a,b)=>(b.score||0)-(a.score||0));
+            return [...prev, data].sort((a,b)=>getConviction(b)-getConviction(a));
           });
         }
         if (data.type === "done" || data.type === "error") {
@@ -1240,7 +1262,7 @@
               <span style={{
                 marginLeft:4,color:"var(--accent)",cursor:"pointer",textDecoration:"underline",
               }}
-                onClick={()=>{ /* handled by parent tab switching */ }}>
+                onClick={()=> setTab && setTab("Thesis")}>
                 Compile one in the Thesis tab
               </span>
             </div>
@@ -1597,7 +1619,7 @@
           {name:"Figma",company_id:631408}
         ]
       },
-      company_gate: { max_headcount: 500, countries: ["USA"] },
+      company_gate: { max_headcount: 10, countries: ["USA"] },
       scoring_weights: {
         size_score:0.18, shared_destination:0.22, destination_tiny:0.12,
         stealth_founder_ratio:0.16, window_tightness:0.12, co_tenure:0.14, open_to:0.06
@@ -1798,7 +1820,7 @@
 
               {/* company gate */}
               <div style={{marginBottom:14,fontSize:12,color:"var(--text3)"}}>
-                <span style={{color:"var(--text2)"}}>Headcount gate:</span> &lt;{thesis.company_gate?.max_headcount ?? 500} employees
+                <span style={{color:"var(--text2)"}}>Headcount gate:</span> &lt;{thesis.company_gate?.max_headcount ?? 10} employees
                 {thesis.company_gate?.countries?.length > 0 && (
                   <span> · Countries: {thesis.company_gate.countries.join(", ")}</span>
                 )}
@@ -1852,13 +1874,7 @@
 
     // ── ScoreboardTab ─────────────────────────────────────────────────────────
 
-    function isBacktestCard(row) {
-      return row.source === "backtest" ||
-        ["pred_characterai_001","pred_sierraai_001","pred_sakanaai_001"].includes(row.prediction_id);
-    }
-
     function PredictionCard({ row }) {
-      const isBacktest = isBacktestCard(row);
       const status     = row.status || "open";
       const borderColor = status === "confirmed" ? "var(--green)" : status === "expired" ? "var(--border2)" : "var(--accent)";
       const adjClass   = {
@@ -1866,8 +1882,6 @@
         coincidental:"adj-coincidental", unclear:"adj-unclear"
       }[row.claude_verdict] || "adj-unclear";
 
-      const gitHash = row.git_commit_hash || row.row_hash;
-      const shortHash = gitHash ? gitHash.slice(0,7) : null;
       const dateStr = row.created_at ? row.created_at.slice(0,10) : "—";
 
       const evidence = row.evidence_summary || [];
@@ -1881,8 +1895,11 @@
                 letterSpacing:".07em",padding:"2px 7px",borderRadius:3,textTransform:"uppercase"}}>
                 {row.tier || "—"}
               </span>
-              <span style={{fontFamily:"var(--mono)",fontSize:13,fontWeight:600,color:"var(--text)"}}>
-                {(parseFloat(row.score)||0).toFixed(1)}
+              <span
+                style={{fontFamily:"var(--mono)",fontSize:13,fontWeight:600,color:"var(--text)",cursor:"help"}}
+                title={`Conviction = feature score × verdict confidence. Raw feature score: ${(parseFloat(row.score)||0).toFixed(1)}`}
+              >
+                {(parseFloat(row.conviction_score ?? row.score)||0).toFixed(1)}
               </span>
               <span style={{fontSize:12,color:"var(--text2)"}}>
                 {row.anchor_company || "—"} → {row.destination_name || "(stealth)"}
@@ -1906,12 +1923,11 @@
               )}
             </div>
 
-            {/* git hash — on ALL cards */}
-            {shortHash && (
+            {/* detection date */}
+            {dateStr !== "—" && (
               <div style={{marginBottom:8,fontSize:11,display:"flex",gap:8,alignItems:"center"}}>
-                <span style={{color:"var(--text3)"}}>git:</span>
-                <span style={{fontFamily:"var(--mono)",color:"var(--text2)"}}>{shortHash}</span>
-                <span style={{color:"var(--text3)"}}>· {dateStr}</span>
+                <span style={{color:"var(--text3)"}}>detected:</span>
+                <span style={{fontFamily:"var(--mono)",color:"var(--text2)"}}>{dateStr}</span>
               </div>
             )}
 
@@ -2003,7 +2019,7 @@
               if (!destId || destId === 0) watchItems.push(`${dest || "destination"} Crustdata index entry`);
               if (splitDest) watchItems.push("shared company name in member profiles");
               watchItems.push(`first job posting at ${dest || "destination"}`);
-              watchItems.push(`git:${row.prediction_id}`);
+              watchItems.push(`id:${row.prediction_id}`);
               const watching = watchItems.join(" · ");
 
               return <ReasoningBlock para={para} watching={watching} />;
@@ -2063,7 +2079,7 @@
         <div className="tab-content">
           <div style={{marginBottom:20}}>
             <p style={{fontSize:12,color:"var(--text3)",lineHeight:1.6,maxWidth:640}}>
-              Tamper-evident prediction ledger. Each prediction is SHA-256 hash-chained and git-committed at detection time —
+              Tamper-evident prediction ledger. Each prediction is SHA-256 hash-chained at detection time — each prediction links to the prior, making backdating detectable —
               before any confirmation. Hit rate is confirmed vs. (confirmed + expired).
             </p>
           </div>
@@ -2085,7 +2101,7 @@
               <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
                 <span style={{fontSize:12,color:"var(--text2)",width:70}}>Hit rate</span>
                 <div style={{flex:1,background:"var(--border)",borderRadius:2,height:4}}>
-                  <div className="conf-bar" style={{width:`${((parseFloat(metrics.hit_rate)||0)*100).toFixed(1)}%`}}/>
+                  <div className="confidence-bar-fill conf-forming" style={{width:`${((parseFloat(metrics.hit_rate)||0)*100).toFixed(1)}%`}}/>
                 </div>
                 <span style={{fontFamily:"var(--mono)",fontSize:12,color:"var(--text)",width:40,textAlign:"right"}}>
                   {((parseFloat(metrics.hit_rate)||0)*100).toFixed(1)}%
@@ -2218,7 +2234,7 @@
               validating={validating}
             />
             <div style={{ flex:1, overflow:"hidden" }}>
-              {tab === "Radar"      && <RadarTab keys={keys} liveMode={liveMode} activeThesis={activeThesis} />}
+              {tab === "Radar"      && <RadarTab keys={keys} liveMode={liveMode} activeThesis={activeThesis} setTab={setTab} />}
               {tab === "Thesis"     && <ThesisTab keys={keys} liveMode={liveMode} onActivate={setActiveThesis} />}
               {tab === "Scoreboard" && <ScoreboardTab />}
               {tab === "Validation" && <ValidationTab />}

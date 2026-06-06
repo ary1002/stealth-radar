@@ -17,7 +17,8 @@ MEDIUM_CLUSTER_WINDOW_MONTHS   = 4
 MIN_CLUSTER_SIZE               = 2
 MEDIUM_MIN_CO_TENURE_MONTHS    = 6  # medium cluster requires this much co-tenure OR same destination
 
-DUCKDB_PATH    = "data/radar.duckdb"
+DATA_DIR       = os.getenv("DATA_DIR", "data")
+DUCKDB_PATH    = os.path.join(DATA_DIR, "radar.duckdb")
 RATE_LIMIT_RPS = 8
 
 # Strong-cluster eligibility gate.

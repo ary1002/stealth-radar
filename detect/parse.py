@@ -66,6 +66,7 @@ def _normalise(raw: dict) -> dict:
         "headline":           bp.get("headline", ""),
         "linkedin_profile_url": sh.get("profile_url", ""),
         "location_country":   (bp.get("location") or {}).get("country"),
+        "location_city":      (bp.get("location") or {}).get("city"),
         "open_to_cards":      pn.get("open_to_cards") or [],
         "recently_changed_jobs": raw.get("recently_changed_jobs", False),
         "education_background": [{"institute_name": s.get("school")} for s in edu if s.get("school")],
@@ -107,4 +108,5 @@ def parse_person(raw: dict) -> Person:
         schools,
         _roles(raw),
         None,
+        city=raw.get("location_city"),
     )

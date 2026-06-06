@@ -155,12 +155,37 @@ async def radar_stream_post(req: RadarStreamRequest):
             from models.schemas import EvidenceBundle
             import types
 
-            adj = event.get("adjudication") or {}
-            t   = event.get("tier", "")
-            if not (adj.get("label") == "forming_team" and t in ("High", "Medium")):
+            from main import _is_explicit_founding_team as _eft
+            from detect.model import Person, Role
+
+            adj     = event.get("adjudication") or {}
+            t       = event.get("tier", "")
+            verdict = adj.get("label", "")
+            members = event.get("members") or []
+
+            # build minimal Person stubs so _is_explicit_founding_team can check titles
+            from datetime import date as _date
+            _stubs = []
+            for m in members:
+                r = Role(company_id=0, company_name=m.get("current_company"),
+                         title=m.get("current_title"), start_date=_date(2024,1,1),
+                         end_date=None, headcount_latest=None)
+                from detect.model import Person as _P
+                _stubs.append(_P(profile_url=m.get("profile_url",""), name=m.get("name",""),
+                                 headline=m.get("headline",""), country=None, open_to=[],
+                                 recently_changed=True, schools=[], updated_at=None, roles=[r]))
+
+            should_log = (
+                (verdict == "forming_team" and t in ("High", "Medium"))
+                or (verdict == "unclear" and t == "High" and _eft(_stubs))
+            )
+            if not should_log:
                 return
 
-            members = event.get("members") or []
+            predicted_event = (
+                "unverified_high_signal" if verdict == "unclear" else None
+            )
+
             cos = [m.get("current_company") for m in members if m.get("current_company")]
             dest_name = max(set(cos), key=cos.count) if cos else None
 
@@ -168,8 +193,10 @@ async def radar_stream_post(req: RadarStreamRequest):
                 "anchor":                   req.anchor or req.anchor_linkedin_url or "",
                 "score":                    event.get("score", 0),
                 "tier":                     t,
+                "conviction_score":         event.get("conviction_score"),
                 "destination_name":         dest_name,
                 "destination_company_id":   None,
+                "predicted_event":          predicted_event,
                 "members": [
                     {
                         "name":            m.get("name"),
@@ -193,7 +220,7 @@ async def radar_stream_post(req: RadarStreamRequest):
                     conn=conn,
                     cluster=cluster_for_ledger,
                     evidence_bundle=EvidenceBundle(),
-                    verdict=adj.get("label", "forming_team"),
+                    verdict=verdict,
                     tier=t,
                     thesis=thesis_stub,
                 )
@@ -490,4 +517,4 @@ async def toggle_polling():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))

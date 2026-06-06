@@ -28,17 +28,19 @@ def dossier(cluster_summary: dict, anthropic_key: str | None = None) -> dict:
         ],
         messages=[{"role": "user", "content": json.dumps(cluster_summary)}],
     )
-    text = "".join(b.text for b in msg.content if b.type == "text")
-    try:
-        return json.loads(
-            text.strip().removeprefix("```json").removesuffix("```").strip()
-        )
-    except json.JSONDecodeError:
-        return {
-            "summary": "parse_error",
-            "members": [],
-            "evidence_timeline": [],
-            "thesis": "",
-            "recommended_action": "",
-            "urgency": "90d",
-        }
+    text  = "".join(b.text for b in msg.content if b.type == "text")
+    start = text.find("{")
+    end   = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        try:
+            return json.loads(text[start : end + 1])
+        except json.JSONDecodeError:
+            pass
+    return {
+        "summary": "parse_error",
+        "members": [],
+        "evidence_timeline": [],
+        "thesis": "",
+        "recommended_action": "",
+        "urgency": "90d",
+    }

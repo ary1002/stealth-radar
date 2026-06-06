@@ -88,36 +88,6 @@
     {
       "type": "cluster",
       "rank": 1,
-      "tier": "Low",
-      "score": 47.08954522038036,
-      "members": [
-        {
-          "name": "Logan Kilpatrick",
-          "headline": "Member of Technical Staff",
-          "current_title": "Member of Technical Staff",
-          "current_company": "Google DeepMind",
-          "current_start_date": "2026-05-01",
-          "anchor_tenure_months": 15.0
-        },
-        {
-          "name": "Lei Zhang",
-          "headline": "Staff Research Scientist at DeepMind",
-          "current_title": "Staff Research Scientist",
-          "current_company": "Google DeepMind",
-          "current_start_date": "2026-04-01",
-          "anchor_tenure_months": 17.0
-        }
-      ],
-      "adjudication": {
-        "label": "coincidental",
-        "confidence": 0.72,
-        "rationale": "Only two people converging on the same large employer (Google DeepMind) with zero co-tenure overlap and zero stealth/founder signal is more consistent with independent talent poaching by a major competitor than deliberate team formation."
-      },
-      "dossier": null
-    },
-    {
-      "type": "cluster",
-      "rank": 2,
       "tier": "High",
       "score": 88.57393046835541,
       "members": [
@@ -157,12 +127,62 @@
         "thesis": "A senior ops/people executive and a long-tenured technical insider from OpenAI are building something together under the name 'Core Automation' \u2014 likely AI-native workflow or enterprise automation, given their combined background in scaling frontier-AI orgs and technical infrastructure. The synchronized exit, stealth posture, and founder-only headcount signal early pre-seed formation. The 32-month OpenAI technical tenure on the engineering side is the real signal; Villagra's CPO pedigree suggests they intend to scale fast and hire aggressively once the product thesis is locked.",
         "recommended_action": "Reach out immediately via warm OpenAI network path. Offer pre-product-market-fit capital or strategic intro before they run a formal process. Anchor conversation on Villagra (more public profile); use her HRT\u2192OpenAI arc as the opener.",
         "urgency": "now"
-      }
+      },
+      "conviction_score": 88.6,
+      "verdict_multiplier": 1.0
+    },
+    {
+      "type": "cluster",
+      "rank": 2,
+      "tier": "Low",
+      "score": 60.57393046835541,
+      "members": [
+        {
+          "name": "Gerald Torres",
+          "headline": "L6/L7 - Cloud AI/ML SWE Sourcer",
+          "current_title": "Cloud AI/ML SWE Sourcer",
+          "current_company": "Google",
+          "current_start_date": "2026-04-01",
+          "anchor_tenure_months": 24.0
+        },
+        {
+          "name": "Ben Goodger",
+          "headline": "VP Engineering, Labs",
+          "current_title": "Vice President",
+          "current_company": "Google",
+          "current_start_date": "2026-04-01",
+          "anchor_tenure_months": 22.0
+        }
+      ],
+      "adjudication": {
+        "label": "coincidental",
+        "confidence": 0.7,
+        "rationale": "Only two people moving to a large destination (Google) with no stealth/founder signal and zero open_to score makes this most likely independent career moves rather than intentional team formation, despite tight timing."
+      },
+      "dossier": {
+        "summary": "Two OpenAI alumni \u2014 a VP-level engineering leader and a senior AI/ML recruiting specialist \u2014 both landed at Google simultaneously in April 2026 after overlapping ~2-year stints at OpenAI. The pairing of a senior engineering exec (Ben Goodger) with a dedicated AI/ML sourcer (Gerald Torres) is structurally significant: it suggests an active, coordinated team-build at Google Labs, not coincidental lateral moves.",
+        "members": [
+          "Ben Goodger \u2014 VP Engineering, Labs @ Google (joined Apr 2026); ~22 months at OpenAI",
+          "Gerald Torres \u2014 L6/L7 Cloud AI/ML SWE Sourcer @ Google (joined Apr 2026); ~24 months at OpenAI"
+        ],
+        "evidence_timeline": [
+          "~Jun 2024: Gerald Torres joins OpenAI (inferred from 24-month tenure)",
+          "~Jun 2024: Ben Goodger joins OpenAI (inferred from 22-month tenure)",
+          "Apr 2026: Both depart OpenAI and surface simultaneously at Google \u2014 destination_convergence = 1.0, window_tightness = 1.0",
+          "Apr 2026: Goodger titled VP Engineering, Labs \u2014 a senior leadership seat implying mandate to staff a team",
+          "Apr 2026: Torres titled Cloud AI/ML SWE Sourcer \u2014 role directly supports headcount build under Goodger or adjacent Labs leadership"
+        ],
+        "thesis": "Goodger is standing up or expanding a Cloud AI/ML engineering team within Google Labs and brought Torres along specifically to source for it. Their co-tenure at OpenAI means Torres has direct knowledge of Goodger's hiring bar, target profiles, and likely candidate pipeline from OpenAI's talent network. This cluster signals an imminent, high-velocity hiring wave for senior AI/ML engineers into Google Labs \u2014 sourced heavily from OpenAI and adjacent frontier-AI orgs. For a talent scout or competing firm, this is a leading indicator of: (1) Google Labs prioritizing cloud-native AI/ML infrastructure, and (2) OpenAI experiencing quiet senior-layer attrition worth monitoring.",
+        "recommended_action": "Engage Ben Goodger directly on his team-build scope and open roles; map his OpenAI-era network for candidates he and Torres will target. Simultaneously, audit OpenAI's L6/L7 engineering bench for secondary departure signals. If representing candidates, fast-track any cloud AI/ML SWEs with OpenAI or DeepMind backgrounds \u2014 Torres is actively sourcing this profile now.",
+        "urgency": "now"
+      },
+      "conviction_score": 30.3,
+      "verdict_multiplier": 0.5
     },
     {
       "type": "cluster",
       "rank": 3,
-      "tier": "Medium",
+      "tier": "Low",
       "score": 57.89998752228176,
       "members": [
         {
@@ -230,53 +250,41 @@
         "thesis": "This is a high-conviction coordinated talent exodus from OpenAI to Anthropic. The April 2026 synchronization across 5 people in distinct functions (safety policy, engineering, GTM) signals a network-pull event \u2014 likely one anchor hire triggered referrals. Tim Salimans (26mo tenure) is the probable anchor given seniority. Cross-functional composition (not just engineers) suggests Anthropic may be building out a specific product or safety initiative requiring a full stack team. This cluster is a strong leading indicator of OpenAI organizational stress or a targeted Anthropic recruiting push in safety/frontier-risk domains.",
         "recommended_action": "Reach out to Tim Salimans and Bilva C. immediately \u2014 Salimans as likely anchor/connector, Bilva as rare policy+frontier-risk profile. Map their OpenAI networks for additional departure signals. For investors: flag Anthropic's ability to recruit cross-functional OpenAI talent at scale as a competitive moat signal worth weighting in diligence.",
         "urgency": "now"
-      }
+      },
+      "conviction_score": 28.9,
+      "verdict_multiplier": 0.5
     },
     {
       "type": "cluster",
       "rank": 4,
-      "tier": "Medium",
-      "score": 60.57393046835541,
+      "tier": "Low",
+      "score": 47.08954522038036,
       "members": [
         {
-          "name": "Gerald Torres",
-          "headline": "L6/L7 - Cloud AI/ML SWE Sourcer",
-          "current_title": "Cloud AI/ML SWE Sourcer",
-          "current_company": "Google",
-          "current_start_date": "2026-04-01",
-          "anchor_tenure_months": 24.0
+          "name": "Logan Kilpatrick",
+          "headline": "Member of Technical Staff",
+          "current_title": "Member of Technical Staff",
+          "current_company": "Google DeepMind",
+          "current_start_date": "2026-05-01",
+          "anchor_tenure_months": 15.0
         },
         {
-          "name": "Ben Goodger",
-          "headline": "VP Engineering, Labs",
-          "current_title": "Vice President",
-          "current_company": "Google",
+          "name": "Lei Zhang",
+          "headline": "Staff Research Scientist at DeepMind",
+          "current_title": "Staff Research Scientist",
+          "current_company": "Google DeepMind",
           "current_start_date": "2026-04-01",
-          "anchor_tenure_months": 22.0
+          "anchor_tenure_months": 17.0
         }
       ],
       "adjudication": {
         "label": "coincidental",
-        "confidence": 0.7,
-        "rationale": "Only two people moving to a large destination (Google) with no stealth/founder signal and zero open_to score makes this most likely independent career moves rather than intentional team formation, despite tight timing."
+        "confidence": 0.72,
+        "rationale": "Only two people converging on the same large employer (Google DeepMind) with zero co-tenure overlap and zero stealth/founder signal is more consistent with independent talent poaching by a major competitor than deliberate team formation."
       },
-      "dossier": {
-        "summary": "Two OpenAI alumni \u2014 a VP-level engineering leader and a senior AI/ML recruiting specialist \u2014 both landed at Google simultaneously in April 2026 after overlapping ~2-year stints at OpenAI. The pairing of a senior engineering exec (Ben Goodger) with a dedicated AI/ML sourcer (Gerald Torres) is structurally significant: it suggests an active, coordinated team-build at Google Labs, not coincidental lateral moves.",
-        "members": [
-          "Ben Goodger \u2014 VP Engineering, Labs @ Google (joined Apr 2026); ~22 months at OpenAI",
-          "Gerald Torres \u2014 L6/L7 Cloud AI/ML SWE Sourcer @ Google (joined Apr 2026); ~24 months at OpenAI"
-        ],
-        "evidence_timeline": [
-          "~Jun 2024: Gerald Torres joins OpenAI (inferred from 24-month tenure)",
-          "~Jun 2024: Ben Goodger joins OpenAI (inferred from 22-month tenure)",
-          "Apr 2026: Both depart OpenAI and surface simultaneously at Google \u2014 destination_convergence = 1.0, window_tightness = 1.0",
-          "Apr 2026: Goodger titled VP Engineering, Labs \u2014 a senior leadership seat implying mandate to staff a team",
-          "Apr 2026: Torres titled Cloud AI/ML SWE Sourcer \u2014 role directly supports headcount build under Goodger or adjacent Labs leadership"
-        ],
-        "thesis": "Goodger is standing up or expanding a Cloud AI/ML engineering team within Google Labs and brought Torres along specifically to source for it. Their co-tenure at OpenAI means Torres has direct knowledge of Goodger's hiring bar, target profiles, and likely candidate pipeline from OpenAI's talent network. This cluster signals an imminent, high-velocity hiring wave for senior AI/ML engineers into Google Labs \u2014 sourced heavily from OpenAI and adjacent frontier-AI orgs. For a talent scout or competing firm, this is a leading indicator of: (1) Google Labs prioritizing cloud-native AI/ML infrastructure, and (2) OpenAI experiencing quiet senior-layer attrition worth monitoring.",
-        "recommended_action": "Engage Ben Goodger directly on his team-build scope and open roles; map his OpenAI-era network for candidates he and Torres will target. Simultaneously, audit OpenAI's L6/L7 engineering bench for secondary departure signals. If representing candidates, fast-track any cloud AI/ML SWEs with OpenAI or DeepMind backgrounds \u2014 Torres is actively sourcing this profile now.",
-        "urgency": "now"
-      }
+      "dossier": null,
+      "conviction_score": 23.5,
+      "verdict_multiplier": 0.5
     },
     {
       "type": "stage",

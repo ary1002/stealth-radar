@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 
 
@@ -25,6 +25,7 @@ class Person:
     schools: list[str]
     roles: list[Role]
     updated_at: str | None
+    city: str | None = None      # from basic_profile.location.city
 
     @property
     def current_role(self) -> Role | None:

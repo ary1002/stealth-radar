@@ -1,0 +1,615 @@
+[
+  {
+    "matched_on": "Stealth AI",
+    "match_type": "name",
+    "matches": [
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 2876872,
+          "basic_info": {
+            "crustdata_company_id": 2876872,
+            "name": "Stealth",
+            "primary_domain": "focus-ai.com",
+            "all_domains": [
+              "focus-ai.com"
+            ],
+            "website": "http://www.focus-ai.com",
+            "professional_network_url": "https://www.linkedin.com/company/stealthnyc",
+            "professional_network_id": "102845365",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/e1ab11ad6f23b6e7d675d19600431de4a00420e00110353f14926a51e46cf246.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "2-10",
+            "markets": null,
+            "industries": [
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 4833105,
+          "basic_info": {
+            "crustdata_company_id": 4833105,
+            "name": "Stealth",
+            "primary_domain": "TimeTrust.com",
+            "all_domains": [
+              "timetrust.com"
+            ],
+            "website": "https://www.TimeTrust.com",
+            "professional_network_url": "https://www.linkedin.com/company/stealth-ai-finance",
+            "professional_network_id": "103371580",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/b9c10601446fa4cade1c4e15344237118eeb8f248d1677bd2baffe0eeda3d9e7.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "11-50",
+            "markets": null,
+            "industries": [
+              "Financial Services"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 1142552,
+          "basic_info": {
+            "crustdata_company_id": 1142552,
+            "name": "Stealth",
+            "primary_domain": "wikipedia.org",
+            "all_domains": [
+              "wikipedia.org"
+            ],
+            "website": "https://en.wikipedia.org/wiki/Stealth_startup",
+            "professional_network_url": "https://www.linkedin.com/company/stealthstartups",
+            "professional_network_id": "18664070",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/092f968412e286cbe2af7f83222e5f7017e8119f25fce93d9e580e1a0ac3f34a.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "10001+",
+            "markets": null,
+            "industries": [
+              "Software Development",
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 1356131,
+          "basic_info": {
+            "crustdata_company_id": 1356131,
+            "name": "Stealth",
+            "primary_domain": "preludelabs.ai",
+            "all_domains": [
+              "preludelabs.ai",
+              "symbioticaiinc.com",
+              "symbioticlabs.it"
+            ],
+            "website": "https://preludelabs.ai/",
+            "professional_network_url": "https://www.linkedin.com/company/stealthucm",
+            "professional_network_id": "91533234",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/20c899171d1e7cff9697afb1fb6519a0d016e5135c077ac5670fc10ccfdfe850.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "2-10",
+            "markets": null,
+            "industries": [
+              "Research Services",
+              "Professional Services"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 708842,
+          "basic_info": {
+            "crustdata_company_id": 708842,
+            "name": "Stealth",
+            "primary_domain": "stealth.com",
+            "all_domains": [
+              "stealth.com"
+            ],
+            "website": "https://www.stealth.com",
+            "professional_network_url": "https://www.linkedin.com/company/stealthcomputer",
+            "professional_network_id": "1687283",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/02a3e4bb739699fbfe88985100ffc1ca5f833966a0f5b229964207b9db2a67b6.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "11-50",
+            "markets": null,
+            "industries": [
+              "Computer Hardware Manufacturing",
+              "Computers and Electronics Manufacturing",
+              "Manufacturing"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 5581991,
+          "basic_info": {
+            "crustdata_company_id": 5581991,
+            "name": "Stealth",
+            "primary_domain": "stealth.ca",
+            "all_domains": [
+              "cribify.ca",
+              "stealth.ca"
+            ],
+            "website": "http://stealth.ca",
+            "professional_network_url": "https://www.linkedin.com/company/signuphelpers",
+            "professional_network_id": "81729301",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/a145e6ac5f42dc2b74731020db66f4808e9bb31b482d14b37fa7296b84f8e87c.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "11-50",
+            "markets": null,
+            "industries": [
+              "Advertising Services",
+              "Professional Services"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 1048909,
+          "basic_info": {
+            "crustdata_company_id": 1048909,
+            "name": "STEALTH",
+            "primary_domain": "stealth1000.com",
+            "all_domains": [
+              "stealth1000.com"
+            ],
+            "website": "https://www.stealth1000.com/",
+            "professional_network_url": "https://www.linkedin.com/company/stealthventures",
+            "professional_network_id": "75661946",
+            "profile_name": "STEALTH",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/5bbfd881a0d6944acb0fe151cbcfee5254dd75317bb1a9aebdb2715eb4cb07b8.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "201-500",
+            "markets": null,
+            "industries": [
+              "Venture Capital and Private Equity Principals",
+              "Capital Markets",
+              "Financial Services"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 18649529,
+          "basic_info": {
+            "crustdata_company_id": 18649529,
+            "name": "Stealth",
+            "primary_domain": null,
+            "all_domains": [],
+            "website": null,
+            "professional_network_url": "https://www.linkedin.com/company/cloudbasic-inc",
+            "professional_network_id": "2316734",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/a3ecbeb405b96692fbd6696974f35146c519e107fdedc8ce4ddf3015e15c5c95.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "201-500",
+            "markets": null,
+            "industries": [
+              "Software Development",
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 13781917,
+          "basic_info": {
+            "crustdata_company_id": 13781917,
+            "name": "Stealth",
+            "primary_domain": "bridgerocktech.com",
+            "all_domains": [
+              "bridgerocktech.com"
+            ],
+            "website": "http://bridgerocktech.com",
+            "professional_network_url": "https://www.linkedin.com/company/stealth-trader",
+            "professional_network_id": "9275556",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/fb4215183a32708d7d8a9f6c5d1f60bee245169953166e6cc3dcb6960809ac8e.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "11-50",
+            "markets": null,
+            "industries": [
+              "Financial Services"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 15872064,
+          "basic_info": {
+            "crustdata_company_id": 15872064,
+            "name": "Stealth AI",
+            "primary_domain": null,
+            "all_domains": [],
+            "website": null,
+            "professional_network_url": "https://www.linkedin.com/company/stealth-co-2",
+            "professional_network_id": "103333318",
+            "profile_name": "Stealth AI",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/12ebecf154b26743c728396c0e93e6bbf408447772dcee916fbecc52490aa45d.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "11-50",
+            "markets": null,
+            "industries": [
+              "Financial Services"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 14643759,
+          "basic_info": {
+            "crustdata_company_id": 14643759,
+            "name": "Stealth",
+            "primary_domain": "stealthstartup.com",
+            "all_domains": [
+              "stealthstartup.com",
+              "survey-smiles.com"
+            ],
+            "website": "http://stealthstartup.com",
+            "professional_network_url": "https://www.linkedin.com/company/stealth-start-ups",
+            "professional_network_id": "90583677",
+            "profile_name": "Stealth",
+            "logo_permalink": null,
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "2-10",
+            "markets": null,
+            "industries": [
+              "Information Services",
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 15296656,
+          "basic_info": {
+            "crustdata_company_id": 15296656,
+            "name": "Stealth AI",
+            "primary_domain": "stealth-ai.business",
+            "all_domains": [
+              "stealth-ai.business"
+            ],
+            "website": "https://www.stealth-ai.business",
+            "professional_network_url": "https://www.linkedin.com/company/stealth-ai-agency",
+            "professional_network_id": "103564318",
+            "profile_name": "Stealth AI",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/157e53ef6430568f7ac4a7ac68d0823b70e66583ddd81142edd58a420c23b9b8.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "2-10",
+            "markets": null,
+            "industries": [
+              "Software Development",
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 26298451,
+          "basic_info": {
+            "crustdata_company_id": 26298451,
+            "name": "Stealth",
+            "primary_domain": null,
+            "all_domains": [],
+            "website": null,
+            "professional_network_url": "https://www.linkedin.com/company/coldsteatlh",
+            "professional_network_id": "104014067",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/af1c89b2afce2b926e0a67f9f3b106dcff81ca2170212fb4ea05b783df5feefd.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "10001+",
+            "markets": null,
+            "industries": [
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 4769259,
+          "basic_info": {
+            "crustdata_company_id": 4769259,
+            "name": "Stealth",
+            "primary_domain": "startups.co",
+            "all_domains": [
+              "startups.co"
+            ],
+            "website": "http://startups.co",
+            "professional_network_url": "https://www.linkedin.com/company/stealth-mode-startup2",
+            "professional_network_id": "14445380",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/ccaadc11c419ee9ea1bd24fdba56eaf53242f42f1924595a194b7263d584b28f.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "2-10",
+            "markets": null,
+            "industries": [
+              "Information Technology & Services"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 1887670,
+          "basic_info": {
+            "crustdata_company_id": 1887670,
+            "name": "Stealth",
+            "primary_domain": "stealth.co",
+            "all_domains": [
+              "stealth.co"
+            ],
+            "website": "http://stealth.co",
+            "professional_network_url": "https://www.linkedin.com/company/stealth32423423",
+            "professional_network_id": "68171646",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/139d4c5726325d8f74d8d8e9e8bf79234f43f2c2eee98ea255fece352cab8808.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "2-10",
+            "markets": null,
+            "industries": [
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 20286928,
+          "basic_info": {
+            "crustdata_company_id": 20286928,
+            "name": "Stealth",
+            "primary_domain": "stealthweldedseam.com",
+            "all_domains": [
+              "stealthweldedseam.com"
+            ],
+            "website": "https://stealthweldedseam.com",
+            "professional_network_url": "https://www.linkedin.com/company/stealthweldedseams",
+            "professional_network_id": "78714282",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/24622b1d8e621ea96393bfd154cb2cfb25bb059e09ce55fb4f9e11f547bad437.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "11-50",
+            "markets": null,
+            "industries": [
+              "Sporting Goods Manufacturing",
+              "Manufacturing"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 2845593,
+          "basic_info": {
+            "crustdata_company_id": 2845593,
+            "name": "AI Stealth",
+            "primary_domain": "linkedin.com",
+            "all_domains": [
+              "linkedin.com"
+            ],
+            "website": "https://www.linkedin.com/hiring/jobs/3851136104",
+            "professional_network_url": "https://www.linkedin.com/company/ai-stealth-technologies",
+            "professional_network_id": "99218497",
+            "profile_name": "AI Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/b59023c783bb31bc1e3fdd23b3b8f8e3906fcd602753f75ed6f8b32c89347f0d.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "2-10",
+            "markets": null,
+            "industries": [
+              "Software Development",
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 3049692,
+          "basic_info": {
+            "crustdata_company_id": 3049692,
+            "name": "Stealth",
+            "primary_domain": "bremer.co",
+            "all_domains": [
+              "bremer.co"
+            ],
+            "website": "https://stealth.bremer.co",
+            "professional_network_url": "https://www.linkedin.com/company/stealth",
+            "professional_network_id": "69691578",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/61e0c1eda64c0c70c5207b2c3309f3182e075ed7e5f9ace9a5a973e4104e5ede.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "2-10",
+            "markets": null,
+            "industries": [
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 22876999,
+          "basic_info": {
+            "crustdata_company_id": 22876999,
+            "name": "Stealth",
+            "primary_domain": null,
+            "all_domains": [],
+            "website": null,
+            "professional_network_url": "https://www.linkedin.com/company/stealthmodecompany",
+            "professional_network_id": "64641439",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/4f481fd68be47932b40e5bbe60acc8b9a71c8c57623d5fa36e640f88f3328db6.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "51-200",
+            "markets": null,
+            "industries": [
+              "E-Learning Providers",
+              "Education"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 20539210,
+          "basic_info": {
+            "crustdata_company_id": 20539210,
+            "name": "Stealth",
+            "primary_domain": "wikipedia.org",
+            "all_domains": [
+              "wikipedia.org"
+            ],
+            "website": "https://en.wikipedia.org/wiki/Stealth_startup",
+            "professional_network_url": "https://www.linkedin.com/company/livebic",
+            "professional_network_id": "71983792",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/8b571394a11ee27c5a75aefa7c92a063ed8ddaeffd6b043533698a779f78732c.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "2-10",
+            "markets": null,
+            "industries": [
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      },
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 21250366,
+          "basic_info": {
+            "crustdata_company_id": 21250366,
+            "name": "Stealth",
+            "primary_domain": "stealth.io",
+            "all_domains": [
+              "stealth.io"
+            ],
+            "website": "https://www.stealth.io",
+            "professional_network_url": "https://www.linkedin.com/company/cloudcred",
+            "professional_network_id": "65842696",
+            "profile_name": "Stealth",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/931e423365fb1df43f8ba2e0500d4d47e63f92ebb79eeff0e0e725baff7dd5ac.jpg",
+            "description": null,
+            "company_type": null,
+            "year_founded": null,
+            "employee_count_range": "2-10",
+            "markets": null,
+            "industries": [
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      }
+    ]
+  }
+]

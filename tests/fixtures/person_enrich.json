@@ -1,0 +1,289 @@
+[
+  {
+    "matched_on": "https://www.linkedin.com/in/tejasmanohar",
+    "match_type": "professional_network_profile_url",
+    "matches": [
+      {
+        "confidence_score": 1.0,
+        "person_data": {
+          "basic_profile": {
+            "current_title": "Cofounder and Co-CEO",
+            "first_name": null,
+            "headline": "Co-CEO of Hightouch | AI for Marketers",
+            "languages": [],
+            "last_name": null,
+            "last_updated": "2026-06-04T18:07:32.287784Z",
+            "location": {
+              "city": "El Dorado Hills",
+              "continent": "North America",
+              "country": "United States",
+              "raw": "San Francisco Bay Area",
+              "state": "California"
+            },
+            "name": "Tejas Manohar",
+            "normalized_title": {
+              "confident": true,
+              "department": "Executive Leadership",
+              "matched_title": "Co-Founder and Co-CEO",
+              "similarity": 0.926800012588501,
+              "sub_department": "Founder & Entrepreneurship Leadership"
+            },
+            "professional_network_name": "Tejas Manohar",
+            "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/86eab36b0b0aa8afd38a19401725c103abf4fba86224216097cca992cfe693f5.jpg",
+            "summary": "Co-Founder of Hightouch, the leading Composable CDP and AI Decisioning platform for marketing teams. Build AI agents, uncover insights, and deliver hyper-personalized marketing with all your data.\n\nhttps://www.hightouch.com/\nEmail tejas [at] hightouch [dot] io or message me on LinkedIn"
+          },
+          "education": {
+            "schools": []
+          },
+          "experience": {
+            "employment_details": {
+              "current": [
+                {
+                  "company_description": "Hightouch is the leading Composable CDP and Agentic Marketing Platform that empowers marketers to answer questions, uncover opportunities, and activate data.",
+                  "company_professional_network_profile_url": "https://linkedin.com/company/42344868",
+                  "company_profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/87b5c3ef5b948514c78ee077cab82b9d288f013eb2d678feb491d3c54082fd48.jpg",
+                  "company_website_domain": "hightouch.com",
+                  "crustdata_company_id": 691578,
+                  "description": "We're building the AI for marketers\n\nWe're also #1 in Composable CDP\n\nYC Summer 2019 Batch",
+                  "employment_type": "Full-time",
+                  "end_date": null,
+                  "function_category": "",
+                  "is_default": true,
+                  "location": {
+                    "raw": "San Francisco Bay Area"
+                  },
+                  "name": "Hightouch",
+                  "position_id": 1607845187,
+                  "professional_network_id": "42344868",
+                  "seniority_level": "CXO",
+                  "start_date": "2019-06-01T00:00:00+00:00",
+                  "title": "Cofounder and Co-CEO",
+                  "years_at_company": "6 to 10 years",
+                  "years_at_company_raw": 7.0
+                }
+              ],
+              "past": [
+                {
+                  "company_description": "",
+                  "company_professional_network_profile_url": "https://linkedin.com/company/3012768",
+                  "company_profile_picture_permalink": "",
+                  "company_website_domain": null,
+                  "crustdata_company_id": null,
+                  "description": "This was my first \"professional\" experience. I jumped around from IE6 support to blocking spammers to optimizing performance (caching, load balancing, etc.) for a Rails app.",
+                  "employment_type": "",
+                  "end_date": "2014-08-01T00:00:00+00:00",
+                  "function_category": "Engineering",
+                  "is_default": false,
+                  "location": {
+                    "raw": "Greater Nashville Area, TN"
+                  },
+                  "name": "Populr",
+                  "position_id": 545070667,
+                  "professional_network_id": "3012768",
+                  "seniority_level": "In Training",
+                  "start_date": "2014-05-01T00:00:00+00:00",
+                  "title": "Software Engineer Intern",
+                  "years_at_company": "Less than 1 year",
+                  "years_at_company_raw": 0.0
+                },
+                {
+                  "company_description": "There's a place in tech for everyone.We want all students to have the skills to use code as a means of creativity and making real, practical changes to their world.",
+                  "company_professional_network_profile_url": "https://linkedin.com/company/512973",
+                  "company_profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/465e38872a4269d7ba595138707bcc2279f8b4249c40ce6afa99be5cb4116403.jpg",
+                  "company_website_domain": "codeday.org",
+                  "crustdata_company_id": 6132774,
+                  "description": "I founded CodeDay Nashville and organized the St. Louis event, which I attended the previous year. CodeDay is a 24-hour coding marathon for middle school to college students. I was responsible for recruiting, promotion, sponsorship, and more.",
+                  "employment_type": "",
+                  "end_date": "2015-11-01T00:00:00+00:00",
+                  "function_category": "",
+                  "is_default": false,
+                  "location": {
+                    "raw": "Greater Seattle Area"
+                  },
+                  "name": "CodeDay",
+                  "position_id": 740690503,
+                  "professional_network_id": "512973",
+                  "seniority_level": "Entry Level Manager",
+                  "start_date": "2014-07-01T00:00:00+00:00",
+                  "title": "Regional Manager",
+                  "years_at_company": "1 to 2 years",
+                  "years_at_company_raw": 1.0
+                },
+                {
+                  "company_description": "HubSpot is a leading agentic customer platform that provides software and support to help businesses grow better. Our platform includes marketing, sales, service, and website management products that start free and scale to meet our customers\u2019 needs at any stage of growth. Today, thousands of customers around the world use our powerful and easy-to-use tools and integrations to attract, engage, and delight customers.HubSpot's award-winning culture has been recognized by Glassdoor, Great Place to Work, Comparably, Fortune, Entrepreneur, Inc., and more. We build connections, careers, and employee growth by creating a workplace that values flexibility, autonomy, and transparency. You can learn more about our commitment to creating an inclusive and diverse workplace in the HubSpot Culture Code.HubSpot is a flexible company with employees working fully remotely, from an office, or a mix of the two. We are headquartered in Cambridge, MA with offices in Amsterdam, Berlin, Bogota, Dublin, Ghent, London, Madrid, Paris, San Francisco, Singapore, Sydney, Tokyo and Toronto. To learn more about HubSpot, visit www.hubspot.com and to join our team, visit www.hubspot.com/careers",
+                  "company_professional_network_profile_url": "https://linkedin.com/company/68529",
+                  "company_profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/47d5da2f51816c27c6b5f8f30f540ce79076f736545cfddb524995159df162f1.jpg",
+                  "company_website_domain": "hubspot.com",
+                  "crustdata_company_id": 662397,
+                  "description": "I worked on Singularity, an Apache Mesos framework, and built an automated interview scheduler (that's still used today!) in Java & React.js.",
+                  "employment_type": "",
+                  "end_date": "2015-08-01T00:00:00+00:00",
+                  "function_category": "Engineering",
+                  "is_default": false,
+                  "location": {
+                    "raw": "Greater Boston Area"
+                  },
+                  "name": "HubSpot",
+                  "position_id": 704163057,
+                  "professional_network_id": "68529",
+                  "seniority_level": "In Training",
+                  "start_date": "2015-05-01T00:00:00+00:00",
+                  "title": "Software Engineer Intern",
+                  "years_at_company": "Less than 1 year",
+                  "years_at_company_raw": 0.0
+                },
+                {
+                  "company_description": "Today's leading companies trust Twilio's Customer Engagement Platform (CEP) to build direct, personalized relationships with their customers everywhere in the world. Twilio enables companies to use communications and data to add intelligence and security to every step of the customer journey, from sales to marketing to growth, customer service and many more engagement use cases in a flexible, programmatic way. Across 180 countries, millions of developers and hundreds of thousands of businesses use Twilio to create magical experiences for their customers.",
+                  "company_professional_network_profile_url": "https://linkedin.com/company/400528",
+                  "company_profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/95374ee5cf581756db45a8fc8fa22db71cdf2565429a5c5315614c7a010ed4b1.jpg",
+                  "company_website_domain": "twilio.com",
+                  "crustdata_company_id": 631277,
+                  "description": "I was officially promoted to tech lead for Segment's Warehouses product. After taking a large reliability initiative over the line, I moved on to our most experimental product, Personas.",
+                  "employment_type": "",
+                  "end_date": "2019-01-01T00:00:00+00:00",
+                  "function_category": "",
+                  "is_default": false,
+                  "location": {
+                    "raw": ""
+                  },
+                  "name": "Twilio Inc.",
+                  "position_id": 1455616365,
+                  "professional_network_id": "400528",
+                  "seniority_level": "Senior",
+                  "start_date": "2017-06-01T00:00:00+00:00",
+                  "title": "Tech Lead",
+                  "years_at_company": "1 to 2 years",
+                  "years_at_company_raw": 1.0
+                },
+                {
+                  "company_description": "A wellspring of innovation, the school occupies a 1,232-acre campus near downtown Berkeley. UC Berkeley, also known as Cal, was established in 1868 as the flagship of today\u2019s 10-campus University of California.",
+                  "company_professional_network_profile_url": "https://linkedin.com/company/2517",
+                  "company_profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/426acda7e092299f46c701d6bff10de72de3254f3dcec2e4abca75957537ee81.jpg",
+                  "company_website_domain": "berkeley.edu",
+                  "crustdata_company_id": 1313972,
+                  "description": "On the side, I worked on Kelda (formerly Quilt) at UC Berkeley's NetSys Lab under Dr. Scott Shenker and PhD Candidate Ethan Jackson. Kelda was a competitor to Kubernetes and Terraform with a turing complete DSL. It has now spun out into a Kubernetes startup.",
+                  "employment_type": "",
+                  "end_date": "2017-05-01T00:00:00+00:00",
+                  "function_category": "",
+                  "is_default": false,
+                  "location": {
+                    "raw": "San Francisco Bay Area"
+                  },
+                  "name": "UC Berkeley",
+                  "position_id": 877156924,
+                  "professional_network_id": "2517",
+                  "seniority_level": "Entry Level",
+                  "start_date": "2016-08-01T00:00:00+00:00",
+                  "title": "Visiting Scholar",
+                  "years_at_company": "Less than 1 year",
+                  "years_at_company_raw": 0.0
+                },
+                {
+                  "company_description": "Lottery.com is a leading technology company that is transforming how, where and when lottery is played. Its engaging mobile and online platforms enable players located in the United States and internationally to remotely purchase legally sanctioned lottery games. Fans and subscribers look to Lottery.com for compelling, real-time results on more than 800 lottery games from more than 40 countries. Additionally, commercial partners and affiliates can utilize LotteryLink to provide Lottery.com products to their customers.Through WinTogether.org, Lottery.com is fundamentally changing how non-profit donors are incentivized to action by gamifying charitable giving. In all that it does, Lottery.com\u2019s mission remains the same: an uncompromising passion to innovate, grow a new demographic of enthusiasts, deliver responsible and trusted solutions, and promote community and philanthropic initiatives. For more information, visit http://www.lottery.com.",
+                  "company_professional_network_profile_url": "https://linkedin.com/company/6425772",
+                  "company_profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/12ae362b992e010e7b2c48bbfabe6733633d60e5324f1a56abeca1d9d5a126ac.jpg",
+                  "company_website_domain": "lottery.com",
+                  "crustdata_company_id": 636585,
+                  "description": "I joined as the first engineer under non-technical cofounders. Initially, I was responsible for developing the backend. However, I soon became a \"jack of all trades\", working with iOS, SOAP bank APIs, computer vision (OpenCV, Tesseract), security consultants, printers, gas stations in New Hampshire, and really, whatever was necessary.\n\nAs the team grew, I took on a wide array of other responsibilities, such as hiring, setting technical direction, and even project management. Before (voluntarily) leaving, I led a full-stack team of six engineers (Android, iOS, Web, backend).",
+                  "employment_type": "",
+                  "end_date": "2015-12-01T00:00:00+00:00",
+                  "function_category": "Engineering",
+                  "is_default": false,
+                  "location": {
+                    "raw": "San Francisco Bay Area"
+                  },
+                  "name": "Lottery.com (AutoLotto, Inc.)",
+                  "position_id": 663033271,
+                  "professional_network_id": "6425772",
+                  "seniority_level": "Senior",
+                  "start_date": "2015-04-01T00:00:00+00:00",
+                  "title": "Lead Engineer",
+                  "years_at_company": "Less than 1 year",
+                  "years_at_company_raw": 0.0
+                },
+                {
+                  "company_description": "Today's leading companies trust Twilio's Customer Engagement Platform (CEP) to build direct, personalized relationships with their customers everywhere in the world. Twilio enables companies to use communications and data to add intelligence and security to every step of the customer journey, from sales to marketing to growth, customer service and many more engagement use cases in a flexible, programmatic way. Across 180 countries, millions of developers and hundreds of thousands of businesses use Twilio to create magical experiences for their customers.",
+                  "company_professional_network_profile_url": "https://linkedin.com/company/400528",
+                  "company_profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/95374ee5cf581756db45a8fc8fa22db71cdf2565429a5c5315614c7a010ed4b1.jpg",
+                  "company_website_domain": "twilio.com",
+                  "crustdata_company_id": 631277,
+                  "description": "I managed the Platform team. We owned the Segment Developer Center and Platform APIs, allowing partners, customers, and developers build on top of Segment.",
+                  "employment_type": "",
+                  "end_date": "2019-06-01T00:00:00+00:00",
+                  "function_category": "",
+                  "is_default": false,
+                  "location": {
+                    "raw": ""
+                  },
+                  "name": "Twilio Inc.",
+                  "position_id": 1453345607,
+                  "professional_network_id": "400528",
+                  "seniority_level": "Entry Level Manager",
+                  "start_date": "2019-01-01T00:00:00+00:00",
+                  "title": "Engineering Manager",
+                  "years_at_company": "Less than 1 year",
+                  "years_at_company_raw": 0.0
+                },
+                {
+                  "company_description": "Today's leading companies trust Twilio's Customer Engagement Platform (CEP) to build direct, personalized relationships with their customers everywhere in the world. Twilio enables companies to use communications and data to add intelligence and security to every step of the customer journey, from sales to marketing to growth, customer service and many more engagement use cases in a flexible, programmatic way. Across 180 countries, millions of developers and hundreds of thousands of businesses use Twilio to create magical experiences for their customers.",
+                  "company_professional_network_profile_url": "https://linkedin.com/company/400528",
+                  "company_profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/95374ee5cf581756db45a8fc8fa22db71cdf2565429a5c5315614c7a010ed4b1.jpg",
+                  "company_website_domain": "twilio.com",
+                  "crustdata_company_id": 631277,
+                  "description": "I started on a team of 3 building Segment Sources. Post-launch, I was the only engineer for a few months and helped scale the platform and hire. In late 2016, I moved to the Warehouses, the company's growing enterprise offering.",
+                  "employment_type": "",
+                  "end_date": "2017-06-01T00:00:00+00:00",
+                  "function_category": "Engineering",
+                  "is_default": false,
+                  "location": {
+                    "raw": ""
+                  },
+                  "name": "Twilio Inc.",
+                  "position_id": 1455615672,
+                  "professional_network_id": "400528",
+                  "seniority_level": "Entry Level",
+                  "start_date": "2016-01-01T00:00:00+00:00",
+                  "title": "Software Engineer",
+                  "years_at_company": "1 to 2 years",
+                  "years_at_company_raw": 1.0
+                }
+              ]
+            }
+          },
+          "professional_network": {
+            "connections": 13470,
+            "current_title": "Cofounder and Co-CEO",
+            "followers": 29104,
+            "headline": "Co-CEO of Hightouch | AI for Marketers",
+            "location": {
+              "city": "El Dorado Hills",
+              "continent": "North America",
+              "country": "United States",
+              "raw": "San Francisco Bay Area",
+              "state": "California"
+            },
+            "metadata": {
+              "last_scraped_source": null
+            },
+            "name": "Tejas Manohar",
+            "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/86eab36b0b0aa8afd38a19401725c103abf4fba86224216097cca992cfe693f5.jpg",
+            "pronoun": "",
+            "summary": "Co-Founder of Hightouch, the leading Composable CDP and AI Decisioning platform for marketing teams. Build AI agents, uncover insights, and deliver hyper-personalized marketing with all your data.\n\nhttps://www.hightouch.com/\nEmail tejas [at] hightouch [dot] io or message me on LinkedIn"
+          },
+          "social_handles": {
+            "dev_platform_identifier": {
+              "profile_url": null
+            },
+            "professional_network_identifier": {
+              "profile_url": "https://www.linkedin.com/in/tejasmanohar"
+            },
+            "twitter_identifier": {
+              "slug": "tejasmanohar"
+            }
+          },
+          "crustdata_person_id": 34839
+        }
+      }
+    ]
+  }
+]
