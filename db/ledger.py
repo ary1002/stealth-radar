@@ -71,15 +71,83 @@ def init_predictions_db(path: str | None = None) -> duckdb.DuckDBPyConnection:
         if os.path.exists(seed_path):
             with open(seed_path) as f:
                 seed_rows = json.load(f)
+            # Recompute the entire hash chain from scratch so the hashes are
+            # consistent with whatever datetime format this environment's DuckDB
+            # uses — the locally-computed hashes in the JSON are discarded.
+            chain_prev_hash = ""
             for row in seed_rows:
-                seed_cols = ", ".join(row.keys())
-                placeholders = ", ".join("?" * len(row))
+                members = row.get("members") or []
+                if isinstance(members, str):
+                    try:
+                        members = json.loads(members)
+                    except (json.JSONDecodeError, TypeError):
+                        members = []
+                evidence = row.get("evidence_bundle") or {}
+                if isinstance(evidence, str):
+                    try:
+                        evidence = json.loads(evidence)
+                    except (json.JSONDecodeError, TypeError):
+                        evidence = {}
+                evidence_items = evidence.get("items", []) if isinstance(evidence, dict) else []
+
+                row_content = {
+                    "prediction_id":         row["prediction_id"],
+                    "thesis_id":             row["thesis_id"],
+                    "cluster_id":            row.get("cluster_id") or "",
+                    "created_at":            row.get("created_at"),
+                    "anchor_company":        row.get("anchor_company") or "",
+                    "members":               members,
+                    "destination_name":      row.get("destination_name"),
+                    "destination_company_id": row.get("destination_company_id"),
+                    "score":                 float(row.get("score") or 0),
+                    "tier":                  row.get("tier"),
+                    "claude_verdict":        row.get("claude_verdict"),
+                    "evidence_bundle":       evidence_items,
+                    "predicted_event":       row.get("predicted_event"),
+                    "status":                "open",
+                }
+                new_hash = hashlib.sha256(
+                    _canonical_json(row_content).encode() + chain_prev_hash.encode()
+                ).hexdigest()
+
                 conn.execute(
-                    f"INSERT INTO predictions ({seed_cols}) VALUES ({placeholders})"
-                    " ON CONFLICT (prediction_id) DO NOTHING",
-                    list(row.values()),
+                    """
+                    INSERT INTO predictions (
+                        prediction_id, thesis_id, cluster_id, created_at,
+                        anchor_company, members, destination_name, destination_company_id,
+                        score, tier, claude_verdict, evidence_bundle,
+                        predicted_event, conviction_score, status,
+                        confirmed_at, lead_time_days, row_hash, prev_hash
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT (prediction_id) DO NOTHING
+                    """,
+                    [
+                        row["prediction_id"],
+                        row["thesis_id"],
+                        row.get("cluster_id") or "",
+                        row.get("created_at"),
+                        row.get("anchor_company") or "",
+                        json.dumps(members, default=str),
+                        row.get("destination_name"),
+                        row.get("destination_company_id"),
+                        float(row.get("score") or 0),
+                        row.get("tier"),
+                        row.get("claude_verdict"),
+                        json.dumps({"items": evidence_items,
+                                    "total_credits": evidence.get("total_credits", 0) if isinstance(evidence, dict) else 0,
+                                    "early_exit_reason": evidence.get("early_exit_reason") if isinstance(evidence, dict) else None},
+                                   default=str),
+                        row.get("predicted_event"),
+                        row.get("conviction_score"),
+                        row.get("status", "open"),
+                        row.get("confirmed_at"),
+                        row.get("lead_time_days"),
+                        new_hash,
+                        chain_prev_hash,
+                    ],
                 )
-            print(f"Seeded {len(seed_rows)} predictions from {seed_path}")
+                chain_prev_hash = new_hash
+            print(f"Seeded {len(seed_rows)} predictions from {seed_path} (hashes recomputed)")
     _db = conn
     return conn
 
