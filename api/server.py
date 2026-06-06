@@ -22,6 +22,12 @@ from detect.signals import tag
 from detect.parse import parse_person
 from ingestion.snapshot import init_db
 from config import DUCKDB_PATH
+from db.ledger import get_db, init_predictions_db
+
+# Initialise the shared DuckDB connection once at startup — before any request
+# can arrive. This avoids concurrent DDL conflicts from multiple endpoints each
+# calling init_predictions_db() independently.
+init_predictions_db()   # sets up schema + seed import; get_db() returns this conn
 
 # Resolve paths relative to repo root (parent of this file's directory)
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -151,7 +157,7 @@ async def radar_stream_post(req: RadarStreamRequest):
     async def _maybe_insert(event: dict) -> None:
         """Non-blocking ledger write for forming_team High/Medium clusters."""
         try:
-            from db.ledger import init_predictions_db, insert_prediction
+            from db.ledger import get_db, insert_prediction
             from models.schemas import EvidenceBundle
             import types
 
@@ -214,18 +220,14 @@ async def radar_stream_post(req: RadarStreamRequest):
                 thesis_id=req.thesis_id or f"radar:{req.anchor or req.anchor_linkedin_url or 'unknown'}"
             )
 
-            conn = init_predictions_db()
-            try:
-                insert_prediction(
-                    conn=conn,
-                    cluster=cluster_for_ledger,
-                    evidence_bundle=EvidenceBundle(),
-                    verdict=verdict,
-                    tier=t,
-                    thesis=thesis_stub,
-                )
-            finally:
-                conn.close()
+            insert_prediction(
+                conn=get_db(),
+                cluster=cluster_for_ledger,
+                evidence_bundle=EvidenceBundle(),
+                verdict=verdict,
+                tier=t,
+                thesis=thesis_stub,
+            )
         except Exception as ledger_err:
             import logging
             logging.getLogger(__name__).warning("ledger insert skipped: %s", ledger_err)

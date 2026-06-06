@@ -17,6 +17,20 @@ from config import DUCKDB_PATH as _DEFAULT_DUCKDB_PATH
 
 _SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schema.sql")
 
+# ── Shared connection ──────────────────────────────────────────────────────────
+# One DuckDB connection opened once at import time and reused for the lifetime
+# of the process. DuckDB allows multiple threads to share a single connection
+# safely; opening concurrent connections on the same file causes DDL conflicts.
+_db: duckdb.DuckDBPyConnection | None = None
+
+
+def get_db() -> duckdb.DuckDBPyConnection:
+    """Return the process-wide DuckDB connection, initialising it on first call."""
+    global _db
+    if _db is None:
+        init_predictions_db()   # sets _db as a side-effect
+    return _db
+
 
 def _canonical_json(row_content: dict) -> str:
     """Return stable JSON string for hashing — sort_keys, str fallback for non-serialisable types."""
@@ -24,7 +38,12 @@ def _canonical_json(row_content: dict) -> str:
 
 
 def init_predictions_db(path: str | None = None) -> duckdb.DuckDBPyConnection:
-    """Open DuckDB (same file as v1) and ensure predictions table exists."""
+    """Open DuckDB and ensure the predictions schema is current.
+
+    Stores the connection in the module-level _db singleton so get_db() returns
+    it from this point on. Call once at startup; all subsequent access via get_db().
+    """
+    global _db
     if path is None:
         path = _DEFAULT_DUCKDB_PATH
     dir_part = os.path.dirname(path)
@@ -34,10 +53,10 @@ def init_predictions_db(path: str | None = None) -> duckdb.DuckDBPyConnection:
     schema_sql = open(_SCHEMA_PATH).read()
     conn.execute(schema_sql)
     # Migration: add conviction_score if not present (existing DBs)
-    cols = {row[0] for row in conn.execute(
+    existing_cols = {row[0] for row in conn.execute(
         "SELECT column_name FROM information_schema.columns WHERE table_name='predictions'"
     ).fetchall()}
-    if "conviction_score" not in cols:
+    if "conviction_score" not in existing_cols:
         conn.execute("ALTER TABLE predictions ADD COLUMN conviction_score DOUBLE")
     # One-time seed import: if the table is empty and a seed file exists, load it.
     # This runs on first deploy against a fresh volume; skipped on every subsequent start.
@@ -49,14 +68,15 @@ def init_predictions_db(path: str | None = None) -> duckdb.DuckDBPyConnection:
             with open(seed_path) as f:
                 seed_rows = json.load(f)
             for row in seed_rows:
-                cols = ", ".join(row.keys())
+                seed_cols = ", ".join(row.keys())
                 placeholders = ", ".join("?" * len(row))
                 conn.execute(
-                    f"INSERT INTO predictions ({cols}) VALUES ({placeholders})"
+                    f"INSERT INTO predictions ({seed_cols}) VALUES ({placeholders})"
                     " ON CONFLICT (prediction_id) DO NOTHING",
                     list(row.values()),
                 )
             print(f"Seeded {len(seed_rows)} predictions from {seed_path}")
+    _db = conn
     return conn
 
 

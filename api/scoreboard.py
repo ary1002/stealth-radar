@@ -11,8 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import APIRouter
 
-from config import DUCKDB_PATH
-from db.ledger import _canonical_json, get_feed, get_metrics, init_predictions_db
+from db.ledger import _canonical_json, get_db, get_feed, get_metrics
 
 router = APIRouter(prefix="/scoreboard", tags=["scoreboard"])
 
@@ -26,12 +25,7 @@ def _is_backtest(row: dict) -> bool:
 @router.get("/metrics")
 def scoreboard_metrics() -> dict:
     """Return hit_rate, tier_breakdown, and totals — backtest seeds excluded."""
-    conn = init_predictions_db(DUCKDB_PATH)
-    try:
-        all_rows = get_feed(conn)
-    finally:
-        conn.close()
-
+    all_rows = get_feed(get_db())
     rows = [r for r in all_rows if not _is_backtest(r)]
     total_open      = sum(1 for r in rows if r["status"] == "open")
     total_confirmed = sum(1 for r in rows if r["status"] == "confirmed")
@@ -54,31 +48,22 @@ def scoreboard_metrics() -> dict:
 @router.get("/feed")
 def scoreboard_feed() -> list:
     """Return confirmed live predictions (backtest seeds excluded)."""
-    conn = init_predictions_db(DUCKDB_PATH)
-    try:
-        rows = [r for r in get_feed(conn, status_filter="confirmed") if not _is_backtest(r)]
-    finally:
-        conn.close()
-    return rows
+    return [r for r in get_feed(get_db(), status_filter="confirmed") if not _is_backtest(r)]
 
 
 @router.get("/verify-chain")
 def scoreboard_verify_chain() -> dict:
     """Verify the SHA-256 hash chain across all predictions ordered by rowid."""
-    conn = init_predictions_db(DUCKDB_PATH)
-    try:
-        rows = conn.execute(
-            """
-            SELECT rowid, prediction_id, thesis_id, cluster_id, created_at,
-                   anchor_company, members, destination_name, destination_company_id,
-                   score, tier, claude_verdict, evidence_bundle,
-                   predicted_event, status, row_hash, prev_hash
-            FROM predictions
-            ORDER BY rowid ASC
-            """
-        ).fetchall()
-    finally:
-        conn.close()
+    rows = get_db().execute(
+        """
+        SELECT rowid, prediction_id, thesis_id, cluster_id, created_at,
+               anchor_company, members, destination_name, destination_company_id,
+               score, tier, claude_verdict, evidence_bundle,
+               predicted_event, status, row_hash, prev_hash
+        FROM predictions
+        ORDER BY rowid ASC
+        """
+    ).fetchall()
 
     if not rows:
         return {"valid": True, "count": 0, "earliest": None, "latest": None}
@@ -97,7 +82,6 @@ def scoreboard_verify_chain() -> dict:
     for i, raw in enumerate(rows):
         r = dict(zip(columns, raw))
 
-        # parse JSON columns for hashing
         members = r["members"]
         if isinstance(members, str):
             try:
@@ -142,7 +126,6 @@ def scoreboard_verify_chain() -> dict:
                 "reason": f"hash mismatch at row {i + 1}",
             }
 
-        # verify prev_hash linkage
         if r["prev_hash"] != prev_hash:
             return {
                 "valid": False,
@@ -169,28 +152,23 @@ def scoreboard_verify_chain() -> dict:
 @router.get("/open")
 def scoreboard_open() -> list:
     """Return open live predictions (backtest seeds excluded)."""
-    conn = init_predictions_db(DUCKDB_PATH)
-    try:
-        rows = [r for r in get_feed(conn, status_filter="open") if not _is_backtest(r)]
-    finally:
-        conn.close()
-
+    rows = [r for r in get_feed(get_db(), status_filter="open") if not _is_backtest(r)]
     result = []
     for row in rows:
         evidence = row.get("evidence_bundle") or {}
         items = (evidence.get("items", []) if isinstance(evidence, dict) else [])[:2]
         result.append({
-            "prediction_id":    row["prediction_id"],
-            "anchor_company":   row["anchor_company"],
-            "destination_name": row["destination_name"],
+            "prediction_id":          row["prediction_id"],
+            "anchor_company":         row["anchor_company"],
+            "destination_name":       row["destination_name"],
             "destination_company_id": row.get("destination_company_id"),
-            "score":            row["score"],
-            "tier":             row["tier"],
-            "claude_verdict":   row["claude_verdict"],
-            "created_at":       row["created_at"],
-            "evidence_summary": items,
-            "members_count":    len(row.get("members") or []),
-            "members":          row.get("members") or [],
-            "row_hash":         row.get("row_hash", ""),
+            "score":                  row["score"],
+            "tier":                   row["tier"],
+            "claude_verdict":         row["claude_verdict"],
+            "created_at":             row["created_at"],
+            "evidence_summary":       items,
+            "members_count":          len(row.get("members") or []),
+            "members":                row.get("members") or [],
+            "row_hash":               row.get("row_hash", ""),
         })
     return result
