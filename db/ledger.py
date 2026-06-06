@@ -62,8 +62,12 @@ def init_predictions_db(path: str | None = None) -> duckdb.DuckDBPyConnection:
     # This runs on first deploy against a fresh volume; skipped on every subsequent start.
     count = conn.execute("SELECT COUNT(*) FROM predictions").fetchone()[0]
     if count == 0:
-        from config import DATA_DIR as _DATA_DIR
-        seed_path = os.path.join(_DATA_DIR, "seed_predictions.json")
+        seed_path = os.path.normpath(os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),  # db/
+            "..",                                          # project root
+            "data",
+            "seed_predictions.json",
+        ))
         if os.path.exists(seed_path):
             with open(seed_path) as f:
                 seed_rows = json.load(f)
